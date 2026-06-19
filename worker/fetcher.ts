@@ -12,7 +12,11 @@ export async function probe(startUrl: string, maxHops = 5): Promise<ProbeResult>
   const chain: Hop[] = [];
   let url = startUrl;
 
-  for (let hop = 0; hop <= maxHops; hop++) {
+  // `hop < maxHops` caps total fetch() calls at maxHops (5), NOT maxHops+1.
+  // Each fetch is a subrequest; the free-tier budget is 50/invocation and the
+  // matrix uses ≤10 cells/slice, so the per-cell ceiling must be ≤5 (10×5=50).
+  // An `<= maxHops` bound would allow 6 fetches/cell → 60 worst-case, over cap.
+  for (let hop = 0; hop < maxHops; hop++) {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
     let res: Response;
