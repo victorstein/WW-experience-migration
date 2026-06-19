@@ -1,0 +1,42 @@
+name: ci
+
+# Test gate: runs the worker suite, web suite, typecheck, and web build on every
+# PR (and manually). No credentials needed — pure validation.
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+
+      - name: Install (root)
+        run: npm ci
+
+      - name: Worker test suite
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Install (web)
+        run: npm ci
+        working-directory: web
+
+      - name: Web test suite
+        run: npx vitest run
+        working-directory: web
+
+      - name: Web build
+        run: npm run build
+        working-directory: web
