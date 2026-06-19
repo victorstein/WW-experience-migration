@@ -1,0 +1,16 @@
+name = "workshops-status-board"
+main = "worker/index.ts"
+compatibility_date = "2026-06-01"
+
+[assets]
+directory = "./web/dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "workshops_board"
+database_id = "local-placeholder-id"
+
+[triggers]
+crons = ["*/3 * * * *"]

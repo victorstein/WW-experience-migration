@@ -1,0 +1,39 @@
+{
+  "name": "workshops-status-board",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Dashboard + cron checker tracking QA/prod redirect &amp; backend health across markets during the WW experience migration",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "dev": "wrangler dev",
+    "migrate:local": "wrangler d1 migrations apply workshops_board --local",
+    "typecheck": "tsc --noEmit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/victorstein/ww-experience-migration.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/victorstein/ww-experience-migration/issues"
+  },
+  "homepage": "https://github.com/victorstein/ww-experience-migration#readme",
+  "dependencies": {
+    "hono": "^4.12.26"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.16.18",
+    "@cloudflare/workers-types": "^4.20260619.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9",
+    "wrangler": "^4.103.0"
+  }
+}
