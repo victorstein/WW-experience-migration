@@ -1,6 +1,10 @@
 import type { CurrentCell, HistoryRow } from "./types";
 
-export async function fetchStatus(): Promise<{ cells: CurrentCell[]; sliceCount: number }> {
+export async function fetchStatus(): Promise<{
+  cells: CurrentCell[];
+  sliceCount: number;
+  slicePlan: string[][];
+}> {
   const r = await fetch("/api/status");
   if (!r.ok) throw new Error(`status ${r.status}`);
   return r.json();
