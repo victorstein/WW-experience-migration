@@ -1,5 +1,12 @@
 node_modules/
-dist/
+# Build artifacts. web/dist is the Worker's [assets] dir — keep the directory
+# present (the vitest workers-pool validates wrangler.toml at startup and the
+# dir must exist) but ignore the actual build output. /dist/ is root-anchored
+# so it does NOT match web/dist (a blanket dist/ would exclude web/dist's parent
+# and make the !.gitkeep re-include impossible).
+/dist/
+web/dist/*
+!web/dist/.gitkeep
 .wrangler/
 .dev.vars
 *.log
