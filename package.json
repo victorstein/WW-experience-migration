@@ -9,9 +9,12 @@
   },
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest",
-    "dev": "wrangler dev",
+    "test:web": "cd web && vitest run",
+    "dev:api": "wrangler dev",
+    "dev:web": "cd web && npm run dev",
+    "build:web": "cd web && npm run build",
     "migrate:local": "wrangler d1 migrations apply workshops_board --local",
+    "dry-run": "node --experimental-strip-types scripts/dry-run.ts",
     "typecheck": "tsc --noEmit"
   },
   "repository": {
