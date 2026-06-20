@@ -2,14 +2,13 @@ import { Hono } from "hono";
 import type { AppEnv } from "./db";
 import { getCursor, getHistory, getStatus, setCursor } from "./db";
 import { runSlice, sliceCount, slicePlan } from "./checker";
-import { marketSlugs } from "../shared/matrix";
 import type { Cell, Concern, Env, HostVariant } from "../shared/types";
 
 export const app = new Hono<{ Bindings: AppEnv }>();
 
 app.get("/api/status", async (c) => {
   const cells = await getStatus(c.env.DB);
-  return c.json({ cells, sliceCount: sliceCount(), slicePlan: slicePlan(), marketSlugs: marketSlugs() });
+  return c.json({ cells, sliceCount: sliceCount(), slicePlan: slicePlan() });
 });
 
 app.get("/api/history", async (c) => {

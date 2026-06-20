@@ -3,7 +3,7 @@ export interface CurrentCell {
   env: "qa" | "prod";
   host_variant: "canonical" | "com";
   market: string;
-  concern: "main" | "coachlist" | "coachdet" | "eventdet" | "locdet";
+  concern: "gateway" | "main" | "coachlist" | "coachdet" | "eventdet" | "locdet";
   url: string;
   backend: Backend;
   http_status: number | null;

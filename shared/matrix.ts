@@ -21,7 +21,7 @@ export const MARKETS: MarketDef[] = [
   { market: "SE", base: "/se/hitta-workshop", coach: "/browse-ww-coaches", tld: "viktvaktarna.se" },
 ];
 
-export const CONCERNS: Concern[] = ["main", "coachlist", "coachdet", "eventdet", "locdet"];
+export const CONCERNS: Concern[] = ["gateway", "main", "coachlist", "coachdet", "eventdet", "locdet"];
 
 export const VARIANTS: { env: Env; host_variant: HostVariant }[] = [
   { env: "qa", host_variant: "com" },
@@ -47,8 +47,15 @@ function host(env: Env, variant: HostVariant, d: MarketDef): string {
   return "https://www." + (env === "qa" ? "qat2." : "") + domain;
 }
 
+// Locale prefix for a market, derived from its workshop-finder base by dropping
+// the finder slug — e.g. "/us/find-a-workshop" -> "/us", "/ca/en/…" -> "/ca/en".
+function locale(d: MarketDef): string {
+  return d.base.slice(0, d.base.lastIndexOf("/"));
+}
+
 function concernSuffix(concern: Concern, coach: string): string {
   switch (concern) {
+    case "gateway": return ""; // gateway is not finder-relative; see buildUrl
     case "main": return "";
     case "coachlist": return coach;
     case "coachdet": return coach + COACH_ID;
@@ -59,16 +66,11 @@ function concernSuffix(concern: Concern, coach: string): string {
 
 export function buildUrl(cell: Cell): string {
   const d = def(cell.market);
-  return host(cell.env, cell.host_variant, d) + d.base + concernSuffix(cell.concern, d.coach);
-}
-
-// Per-market workshop-finder slug (the localized last path segment), e.g.
-// US -> "/find-a-workshop", DE -> "/workshop-finden", CA/FR -> "/trouvez-un-atelier".
-// Surfaced via /api/status so the dashboard can label each market row.
-export function marketSlugs(): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const d of MARKETS) out[d.market] = "/" + d.base.split("/").filter(Boolean).pop()!;
-  return out;
+  const h = host(cell.env, cell.host_variant, d);
+  // Gateway is the top-level workshops landing page (today /<locale>/experiences,
+  // migrating to /<locale>/workshops) — NOT under the finder base.
+  if (cell.concern === "gateway") return h + locale(d) + "/workshops";
+  return h + d.base + concernSuffix(cell.concern, d.coach);
 }
 
 export function allCells(): Cell[] {

@@ -1,6 +1,6 @@
 export type Env = "qa" | "prod";
 export type HostVariant = "canonical" | "com";
-export type Concern = "main" | "coachlist" | "coachdet" | "eventdet" | "locdet";
+export type Concern = "gateway" | "main" | "coachlist" | "coachdet" | "eventdet" | "locdet";
 export type Backend = "vercel" | "nginx" | "redirect-exp" | "404" | "other" | "error";
 
 export interface Cell {

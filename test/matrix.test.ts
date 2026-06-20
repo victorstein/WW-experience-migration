@@ -1,20 +1,18 @@
 import { describe, it, expect } from "vitest";
-import { allCells, buildUrl, partitionSlices, SLICE_MAX, marketSlugs } from "../shared/matrix";
-
-describe("marketSlugs", () => {
-  it("returns the localized workshop-finder slug per market", () => {
-    const s = marketSlugs();
-    expect(s["US"]).toBe("/find-a-workshop");
-    expect(s["DE"]).toBe("/workshop-finden");
-    expect(s["CA/FR"]).toBe("/trouvez-un-atelier");
-    expect(s["SE"]).toBe("/hitta-workshop");
-    expect(Object.keys(s).length).toBe(11);
-  });
-});
+import { allCells, buildUrl, partitionSlices, SLICE_MAX } from "../shared/matrix";
 
 describe("matrix", () => {
-  it("produces exactly 200 cells (US/NZ canonical skipped)", () => {
-    expect(allCells().length).toBe(200);
+  it("produces exactly 240 cells (6 concerns; US/NZ canonical skipped)", () => {
+    expect(allCells().length).toBe(240);
+  });
+
+  it("builds the gateway URL at /<locale>/workshops (not under the finder base)", () => {
+    expect(buildUrl({ env: "prod", host_variant: "com", market: "US", concern: "gateway" })).toBe(
+      "https://www.weightwatchers.com/us/workshops"
+    );
+    expect(buildUrl({ env: "qa", host_variant: "canonical", market: "CA/FR", concern: "gateway" })).toBe(
+      "https://www.qat2.fr.weightwatchers.ca/ca/fr/workshops"
+    );
   });
 
   it("never emits a canonical variant for US or NZ", () => {
@@ -42,6 +40,6 @@ describe("matrix", () => {
   it("partitions into slices of at most SLICE_MAX, covering every cell once", () => {
     const slices = partitionSlices(allCells());
     expect(slices.every((s) => s.length <= SLICE_MAX)).toBe(true);
-    expect(slices.flat().length).toBe(200);
+    expect(slices.flat().length).toBe(240);
   });
 });
