@@ -1,7 +1,11 @@
 export type Env = "qa" | "prod";
 export type HostVariant = "canonical" | "com";
 export type Concern = "gateway" | "main" | "coachlist" | "coachdet" | "eventdet" | "locdet";
-export type Backend = "vercel" | "nginx" | "redirect-exp" | "redirect" | "404" | "other" | "error";
+// "404" is the legacy/Drupal origin 404 (path not forwarded to Vercel yet);
+// "vercel-404" is Vercel's own oops page (route on Vercel, just not found).
+export type Backend =
+  | "vercel" | "nginx" | "redirect-exp" | "redirect"
+  | "vercel-404" | "404" | "other" | "error";
 
 export interface Cell {
   env: Env;

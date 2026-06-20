@@ -1,4 +1,4 @@
-export type Backend = "vercel" | "nginx" | "redirect-exp" | "redirect" | "404" | "other" | "error";
+export type Backend = "vercel" | "nginx" | "redirect-exp" | "redirect" | "vercel-404" | "404" | "other" | "error";
 export interface CurrentCell {
   env: "qa" | "prod";
   host_variant: "canonical" | "com";

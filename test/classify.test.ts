@@ -75,8 +75,17 @@ describe("classify", () => {
     expect(r.redirect_to).toBe("/au/plans");
   });
 
-  it("404 => 404", () => {
-    const r = classify(404, H({ server: "Vercel", "x-vercel-id": "x" }), NOCHAIN);
+  it("vercel-404: a 404 carrying x-vercel-id is Vercel's oops page (route on Vercel, just not found)", () => {
+    const r = classify(404, H({ "x-vercel-id": "fra1::84ngg", "x-matched-path": "/404", via: "1.1 varnish" }), NOCHAIN);
+    expect(r.backend).toBe("vercel-404");
+  });
+
+  it("404: a 404 with no x-vercel-id is the legacy Drupal origin (not forwarded to Vercel yet)", () => {
+    const r = classify(
+      404,
+      H({ server: "cloudflare", via: "1.1 varnish", "x-served-by": "cache-fra-a, cache-fra-b" }),
+      NOCHAIN
+    );
     expect(r.backend).toBe("404");
   });
 
