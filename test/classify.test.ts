@@ -24,6 +24,23 @@ describe("classify", () => {
     expect(r.backend).toBe("nginx");
   });
 
+  it("nginx at the edge: Server rewritten to cloudflare, Fastly via survives, no x-vercel-id => nginx", () => {
+    // What the deployed Worker actually sees for the legacy hosts: Cloudflare
+    // masks Server, but the Fastly fingerprint and missing x-vercel-id remain.
+    const chain: Hop[] = [{ status: 302, location: "/uk/find-a-workshop/" }];
+    const r = classify(
+      200,
+      H({ server: "cloudflare", via: "1.1 varnish, 1.1 varnish", "x-served-by": "cache-iad-x, cache-mia-y" }),
+      chain
+    );
+    expect(r.backend).toBe("nginx");
+  });
+
+  it("non-vercel 200 with no fastly/nginx markers stays other (no guessing)", () => {
+    const r = classify(200, H({ server: "cloudflare" }), NOCHAIN);
+    expect(r.backend).toBe("other");
+  });
+
   it("redirect-exp: a hop Location lands on find-an-experience", () => {
     const chain: Hop[] = [{ status: 302, location: "https://www.weightwatchers.com/uk/find-an-experience" }];
     const r = classify(200, H({ server: "Vercel", "x-vercel-id": "x" }), chain);
