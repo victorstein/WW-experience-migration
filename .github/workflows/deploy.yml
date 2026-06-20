@@ -1,0 +1,69 @@
+name: deploy
+
+# Production deploy to Cloudflare on every push to main (i.e. after a PR merges).
+# Re-runs the full test/build gate first so a direct push to main can't ship a
+# broken build, then applies D1 migrations and deploys the Worker + static assets.
+#
+# Credentials come from this repo's Actions secrets/variables, which are managed
+# and injected by stein-infra (victorstein/stein-infra):
+#   - CLOUDFLARE_API_TOKEN        (secret) — scoped deploy token: Workers Scripts:Edit + D1:Edit + Account Settings:Read
+#   - CLOUDFLARE_ACCOUNT_ID       (var)    — the Cloudflare account
+#   - CLOUDFLARE_D1_DATABASE_ID   (var)    — UUID of the remote D1 (cloudflare_d1_database.ww)
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-main
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+
+      - name: Install (root)
+        run: npm ci
+
+      - name: Worker test suite
+        run: npm test
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Install (web)
+        run: npm ci
+        working-directory: web
+
+      - name: Build web (produces ./web/dist for the [assets] binding)
+        run: npm run build
+        working-directory: web
+
+      # The committed wrangler.toml keeps database_id = "local-placeholder-id" so
+      # local dev/tests use a local D1. For the remote deploy, inject the real id
+      # (surfaced by stein-infra as the CLOUDFLARE_D1_DATABASE_ID repo variable).
+      # database_name stays "workshops_board"; wrangler targets the remote DB by
+      # id, so the CF-dashboard name (ww-experience-migration) difference is cosmetic.
+      - name: Inject remote D1 database_id into wrangler.toml
+        env:
+          D1_ID: ${{ vars.CLOUDFLARE_D1_DATABASE_ID }}
+        run: sed -i "s/local-placeholder-id/${D1_ID}/" wrangler.toml
+
+      - name: Apply D1 migrations (remote)
+        run: npx wrangler d1 migrations apply workshops_board --remote
+
+      - name: Deploy Worker + static assets
+        run: npx wrangler deploy
