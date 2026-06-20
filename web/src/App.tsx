@@ -5,8 +5,9 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/Header";
 import { Grid } from "@/components/Grid";
-import { fetchStatus, refreshSlices, refreshSliceIndices } from "@/lib/api";
+import { fetchStatus, refreshSlices, refreshSliceIndices, claimSweep } from "@/lib/api";
 import { marketSlices, marketStatus, type MarketLoad } from "@/lib/progress";
+import { sweepRemaining } from "@/lib/cooldown";
 import type { CurrentCell } from "@/lib/types";
 
 type VariantKey = "qa/com" | "qa/canonical" | "prod/com" | "prod/canonical";
@@ -19,18 +20,49 @@ export default function App() {
   const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 20 });
   const [reloading, setReloading] = useState<Set<string>>(new Set());
+  const [lastSweepTs, setLastSweepTs] = useState(0);
+  const [cooldown, setCooldown] = useState(90);
+  const [nowSec, setNowSec] = useState(() => Math.floor(Date.now() / 1000));
 
   async function load() {
     const r = await fetchStatus();
     setCells(r.cells);
     setSliceCount(r.sliceCount);
     setSlicePlan(r.slicePlan ?? []);
+    setLastSweepTs(r.lastSweepTs ?? 0);
+    setCooldown(r.cooldown ?? 90);
   }
   useEffect(() => { load(); }, []);
+
+  // 1s tick drives the countdown smoothly without server round-trips.
+  useEffect(() => {
+    const id = setInterval(() => setNowSec(Math.floor(Date.now() / 1000)), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  // Poll status every 30s so every user sees fresh data + the shared cooldown as
+  // it changes. Paused during our own sweep (which already re-fetches per slice).
+  useEffect(() => {
+    if (refreshing) return;
+    const id = setInterval(() => { load(); }, 30000);
+    return () => clearInterval(id);
+  }, [refreshing]);
+
+  const cooldownRemaining = sweepRemaining(lastSweepTs, cooldown, nowSec);
 
   // Drive the slice sweep, refreshing the grid after EACH slice so results
   // stream in instead of appearing all at once when the whole sweep finishes.
   async function handleRefresh() {
+    // Server is the gatekeeper: claim the sweep first. A 429 means someone else
+    // just refreshed — adopt their trigger time so our button shows the same
+    // shared countdown, and don't run a duplicate sweep.
+    const claim = await claimSweep();
+    setLastSweepTs(claim.lastSweepTs);
+    setCooldown(claim.cooldown);
+    if (!claim.ok) {
+      toast.info(`Someone just refreshed — try again in ${claim.retryAfter}s`);
+      return;
+    }
     setRefreshing(true);
     setProgress({ done: 0, total: sliceCount });
     try {
@@ -85,7 +117,7 @@ export default function App() {
   return (
     <TooltipProvider>
       <div className="min-h-screen bg-background">
-        <Header lastTs={lastTs} refreshing={refreshing} progress={progress} onRefresh={handleRefresh} />
+        <Header lastTs={lastTs} refreshing={refreshing} progress={progress} cooldownRemaining={cooldownRemaining} onRefresh={handleRefresh} />
         <main className="mx-auto max-w-6xl px-6 py-8 md:px-10">
           <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantKey)}>
             <TabsList className="rounded-full">

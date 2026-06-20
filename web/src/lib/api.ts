@@ -4,9 +4,26 @@ export async function fetchStatus(): Promise<{
   cells: CurrentCell[];
   sliceCount: number;
   slicePlan: string[][];
+  lastSweepTs: number;
+  cooldown: number;
 }> {
   const r = await fetch("/api/status");
   if (!r.ok) throw new Error(`status ${r.status}`);
+  return r.json();
+}
+
+/**
+ * Try to claim a full sweep. The server enforces a cooldown so concurrent users
+ * can't run overlapping sweeps: `ok:false` (HTTP 429) means another sweep fired
+ * recently, with `retryAfter` seconds remaining on the shared countdown.
+ */
+export async function claimSweep(): Promise<{
+  ok: boolean;
+  lastSweepTs: number;
+  retryAfter: number;
+  cooldown: number;
+}> {
+  const r = await fetch("/api/sweep", { method: "POST" });
   return r.json();
 }
 
