@@ -26,6 +26,13 @@ describe("api", () => {
     expect(res.headers.get("content-type")).toContain("application/json");
   });
 
+  it("GET /api/status tells the browser not to cache (so the 30s poll always re-fetches)", async () => {
+    // The 30s freshness lives in the edge (caches.default); the client copy must be
+    // no-store or the zone's Browser Cache TTL pins a stale copy in the browser.
+    const res = await SELF.fetch("https://board/api/status");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+  });
+
   it("GET /api/history 400s on missing params, 200s with all four", async () => {
     const bad = await SELF.fetch("https://board/api/history?env=qa");
     expect(bad.status).toBe(400);
