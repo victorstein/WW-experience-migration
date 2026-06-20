@@ -80,6 +80,15 @@ describe("classify", () => {
     expect(r.backend).toBe("vercel-404");
   });
 
+  it("vercel-404: cached Vercel oops — Fastly strips x-vercel-id on a HIT, but x-vercel-cache + x-matched-path:/404 survive", () => {
+    const r = classify(
+      404,
+      H({ server: "cloudflare", via: "1.1 varnish", "x-vercel-cache": "HIT", "x-matched-path": "/404", "x-served-by": "cache-mia-x" }),
+      NOCHAIN
+    );
+    expect(r.backend).toBe("vercel-404");
+  });
+
   it("404: a 404 with no x-vercel-id is the legacy Drupal origin (not forwarded to Vercel yet)", () => {
     const r = classify(
       404,

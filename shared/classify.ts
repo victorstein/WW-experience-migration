@@ -19,7 +19,16 @@ export function classify(
   const served_by = h["x-served-by"] ?? null;
   const vercel_id = h["x-vercel-id"] ?? null;
   const matched_path = h["x-matched-path"] ?? null;
-  const isVercel = !!vercel_id || /vercel/i.test(server ?? "");
+  // x-vercel-id only rides a cache MISS — Fastly strips it when it serves a Vercel
+  // response from its own cache (HIT). x-vercel-cache and x-matched-path are set by
+  // Vercel's router and survive caching, so they're the reliable "this is Vercel"
+  // signals; x-vercel-id is kept as one more positive marker. Drupal sets none of
+  // these. Without any of them we don't claim Vercel.
+  const isVercel =
+    !!vercel_id ||
+    /vercel/i.test(server ?? "") ||
+    h["x-vercel-cache"] != null ||
+    matched_path != null;
 
   // All non-classification fields are header-derived and identical across every
   // return path — build them once and spread into each outcome.
