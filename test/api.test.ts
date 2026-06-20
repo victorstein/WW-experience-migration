@@ -25,4 +25,15 @@ describe("api", () => {
     const res = await SELF.fetch("https://board/api/status");
     expect(res.headers.get("content-type")).toContain("application/json");
   });
+
+  it("GET /api/probe returns the live chain, headers, and edge classification", async () => {
+    fetchMock.get("https://origin.test").intercept({ path: "/p" }).reply(200, "ok", {
+      headers: { server: "cloudflare", via: "1.1 varnish, 1.1 varnish", "x-served-by": "cache-iad-a, cache-mia-b" },
+    });
+    const res = await SELF.fetch("https://board/api/probe?url=" + encodeURIComponent("https://origin.test/p"));
+    expect(res.status).toBe(200);
+    const body = await res.json<{ classified: { backend: string }; headers: Record<string, string> }>();
+    expect(body.classified.backend).toBe("nginx"); // cloudflare-masked, but Fastly fingerprint => legacy
+    expect(body.headers.via).toContain("varnish");
+  });
 });

@@ -32,11 +32,24 @@ export function classify(
   const expHop = chain.find((hop) => hop.location && EXP_SLUGS.test(hop.location));
   if (expHop) return make("redirect-exp", expHop.location);
 
+  // A successful, non-Vercel response is the un-migrated origin. Inside the
+  // corporate network it advertises `Server: nginx`; from the public Cloudflare
+  // edge `Server` is rewritten to "cloudflare", so the literal header is only
+  // visible from one vantage point. The Fastly fingerprint (`Via: …varnish`,
+  // `X-Served-By: cache-…`) survives both, so treat any of those — or a literal
+  // nginx server — as the legacy nginx stack. Vercel is matched first, so these
+  // markers only ever apply to non-Vercel responses. Without positive evidence we
+  // stay `other` rather than guess.
+  const looksLegacy =
+    /nginx/i.test(server ?? "") ||
+    /varnish/i.test(via ?? "") ||
+    /cache-/i.test(served_by ?? "");
+
   // 2) Final 200.
   if (finalStatus >= 200 && finalStatus < 300) {
     if (isVercel && matched_path && EXP_SLUGS.test(matched_path)) return make("redirect-exp");
     if (isVercel) return make("vercel");
-    if (/nginx/i.test(server ?? "")) return make("nginx");
+    if (looksLegacy) return make("nginx");
     return make("other");
   }
 
