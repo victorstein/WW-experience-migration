@@ -34,7 +34,7 @@ describe("matrix", () => {
 
   it("builds CA/FR canonical event URL on fr.weightwatchers.ca", () => {
     const url = buildUrl({ env: "qa", host_variant: "canonical", market: "CA/FR", concern: "eventdet" });
-    expect(url).toBe("https://www.qat2.fr.weightwatchers.ca/ca/fr/trouvez-un-atelier/virtual/25550661");
+    expect(url).toBe("https://www.qat2.fr.weightwatchers.ca/ca/fr/trouver-un-atelier/virtual/25550661");
   });
 
   it("partitions into balanced, market-aligned slices of at most SLICE_MAX", () => {
