@@ -1,4 +1,4 @@
-import { Loader2 } from "lucide-react";
+import { Loader2, RotateCw } from "lucide-react";
 import { Cell } from "./Cell";
 import { cn } from "@/lib/utils";
 import type { CurrentCell } from "@/lib/types";
@@ -24,10 +24,12 @@ export function Grid({
   cells,
   marketLoad,
   hostVariant,
+  onReloadMarket,
 }: {
   cells: CurrentCell[];
   marketLoad?: Record<string, MarketLoad>;
   hostVariant: "com" | "canonical";
+  onReloadMarket?: (market: string) => void;
 }) {
   const byKey = new Map(cells.map((c) => [`${c.market}|${c.concern}`, c]));
 
@@ -75,7 +77,19 @@ export function Grid({
               <div className="flex flex-col justify-center px-4 py-5">
                 <div className="flex items-center gap-1.5 text-sm font-semibold">
                   {m}
-                  {load === "loading" && <Loader2 className="size-3.5 animate-spin text-primary" />}
+                  {load === "loading" ? (
+                    <Loader2 className="size-3.5 animate-spin text-primary" />
+                  ) : !sameAsCom ? (
+                    <button
+                      type="button"
+                      onClick={() => onReloadMarket?.(m)}
+                      aria-label={`Reload ${m}`}
+                      title={`Reload ${m}`}
+                      className="rounded p-0.5 text-muted-foreground/50 transition hover:text-foreground"
+                    >
+                      <RotateCw className="size-3.5" />
+                    </button>
+                  ) : null}
                 </div>
                 {host && (
                   <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground" title={host}>

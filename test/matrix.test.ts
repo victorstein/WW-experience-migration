@@ -37,9 +37,14 @@ describe("matrix", () => {
     expect(url).toBe("https://www.qat2.fr.weightwatchers.ca/ca/fr/trouvez-un-atelier/virtual/25550661");
   });
 
-  it("partitions into slices of at most SLICE_MAX, covering every cell once", () => {
+  it("partitions into balanced, market-aligned slices of at most SLICE_MAX", () => {
     const slices = partitionSlices(allCells());
     expect(slices.every((s) => s.length <= SLICE_MAX)).toBe(true);
     expect(slices.flat().length).toBe(240);
+    // No slice straddles two markets.
+    expect(slices.every((s) => new Set(s.map((c) => c.market)).size === 1)).toBe(true);
+    // Balanced within a market: 12-cell markets (US/NZ) split 6+6, not 10+2.
+    const usSlices = slices.filter((s) => s[0].market === "US");
+    expect(usSlices.map((s) => s.length)).toEqual([6, 6]);
   });
 });

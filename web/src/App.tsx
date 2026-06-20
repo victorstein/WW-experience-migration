@@ -5,7 +5,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/Header";
 import { Grid } from "@/components/Grid";
-import { fetchStatus, refreshSlices } from "@/lib/api";
+import { fetchStatus, refreshSlices, refreshSliceIndices } from "@/lib/api";
 import { marketSlices, marketStatus, type MarketLoad } from "@/lib/progress";
 import type { CurrentCell } from "@/lib/types";
 
@@ -18,6 +18,7 @@ export default function App() {
   const [variant, setVariant] = useState<VariantKey>("qa/com");
   const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 20 });
+  const [reloading, setReloading] = useState<Set<string>>(new Set());
 
   async function load() {
     const r = await fetchStatus();
@@ -45,6 +46,25 @@ export default function App() {
     }
   }
 
+  // Re-check a single market by POSTing just its slices (1–3, market-aligned).
+  async function reloadMarket(m: string) {
+    const idxs = marketSlices(slicePlan)[m] ?? [];
+    if (!idxs.length) return;
+    setReloading((prev) => new Set(prev).add(m));
+    try {
+      await refreshSliceIndices(idxs);
+      await load();
+    } catch {
+      toast.error(`Reload ${m} failed`);
+    } finally {
+      setReloading((prev) => {
+        const next = new Set(prev);
+        next.delete(m);
+        return next;
+      });
+    }
+  }
+
   const [env, host_variant] = variant.split("/") as ["qa" | "prod", "canonical" | "com"];
   const filtered = useMemo(
     () => cells.filter((c) => c.env === env && c.host_variant === host_variant),
@@ -57,10 +77,10 @@ export default function App() {
     const slices = marketSlices(slicePlan);
     const out: Record<string, MarketLoad> = {};
     for (const m of Object.keys(slices)) {
-      out[m] = marketStatus(slices[m], progress.done, refreshing);
+      out[m] = reloading.has(m) ? "loading" : marketStatus(slices[m], progress.done, refreshing);
     }
     return out;
-  }, [slicePlan, progress.done, refreshing]);
+  }, [slicePlan, progress.done, refreshing, reloading]);
 
   return (
     <TooltipProvider>
@@ -76,7 +96,7 @@ export default function App() {
             </TabsList>
           </Tabs>
           <div className="mt-6">
-            <Grid cells={filtered} marketLoad={marketLoad} hostVariant={host_variant} />
+            <Grid cells={filtered} marketLoad={marketLoad} hostVariant={host_variant} onReloadMarket={reloadMarket} />
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
             NL, CH/DE, CH/FR are Core-only (no workshops) — not tracked.

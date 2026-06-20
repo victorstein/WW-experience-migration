@@ -41,3 +41,14 @@ export async function refreshSlices(
     await onSliceComplete(i + 1);
   }
 }
+
+/** Run a specific set of slices sequentially — used to reload a single market. */
+export async function refreshSliceIndices(indices: number[]): Promise<void> {
+  for (const i of indices) {
+    try {
+      await fetch(`/api/refresh?slice=${i}`, { method: "POST" });
+    } catch {
+      // swallow — keep going through the market's remaining slices
+    }
+  }
+}

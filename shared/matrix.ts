@@ -87,7 +87,28 @@ export function allCells(): Cell[] {
 }
 
 export function partitionSlices(cells: Cell[], max = SLICE_MAX): Cell[][] {
+  // Slice PER MARKET so a slice never straddles two countries — that keeps the
+  // per-country loading wave and per-market reload clean. Within a market, split
+  // into the fewest balanced slices that stay <= max (e.g. 12 -> 6+6, 24 -> 8+8+8),
+  // rather than max-greedy (10+2). allCells() is market-major, so consecutive
+  // same-market cells form each group.
   const slices: Cell[][] = [];
-  for (let i = 0; i < cells.length; i += max) slices.push(cells.slice(i, i + max));
+  let i = 0;
+  while (i < cells.length) {
+    let j = i;
+    while (j < cells.length && cells[j].market === cells[i].market) j++;
+    const group = cells.slice(i, j);
+    const k = Math.ceil(group.length / max); // number of balanced slices
+    const base = Math.floor(group.length / k);
+    let rem = group.length % k;
+    let p = 0;
+    for (let s = 0; s < k; s++) {
+      const size = base + (rem > 0 ? 1 : 0);
+      if (rem > 0) rem--;
+      slices.push(group.slice(p, p + size));
+      p += size;
+    }
+    i = j;
+  }
   return slices;
 }
