@@ -9,6 +9,7 @@ export interface CurrentCell {
   http_status: number | null;
   matched_path: string | null;
   redirect_to: string | null;
+  server: string | null;
   ts: number;
   since_ts: number;
   first_ts: number;

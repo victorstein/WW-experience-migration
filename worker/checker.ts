@@ -44,7 +44,7 @@ async function checkCell(cell: Cell, now: number): Promise<CheckRow> {
   return {
     ...cell, url, ts: now,
     http_status: o.finalStatus, backend: o.backend,
-    matched_path: o.matched_path, redirect_to: o.redirect_to,
+    matched_path: o.matched_path, redirect_to: o.redirect_to, server: o.server,
   };
 }
 
@@ -52,7 +52,7 @@ function errorRow(cell: Cell, now: number, message: string): CheckRow {
   return {
     ...cell, url: buildUrl(cell), ts: now,
     http_status: null, backend: "error",
-    matched_path: message.slice(0, 200), redirect_to: null,
+    matched_path: message.slice(0, 200), redirect_to: null, server: null,
   };
 }
 

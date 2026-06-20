@@ -31,6 +31,7 @@ export interface CheckRow extends Cell {
   backend: Backend;
   matched_path: string | null;
   redirect_to: string | null;
+  server: string | null; // response `Server` header — makes an `other` verdict debuggable
   ts: number;
 }
 
