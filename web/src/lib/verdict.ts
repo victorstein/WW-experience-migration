@@ -10,6 +10,8 @@ export function verdict(b: Backend): { label: string; className: string; note?: 
       return { label: "nginx", className: "bg-amber-500/15 text-amber-700 ring-amber-500/30 dark:text-amber-300", note: "old workshop finder" };
     case "redirect-exp":
       return { label: "→ experience", className: "bg-blue-500/15 text-blue-700 ring-blue-500/30 dark:text-blue-300" };
+    case "redirect":
+      return { label: "→ redirect", className: "bg-violet-500/15 text-violet-700 ring-violet-500/30 dark:text-violet-300", note: "redirects off-workshop" };
     case "404":
       return { label: "404", className: "bg-rose-500/15 text-rose-700 ring-rose-500/30 dark:text-rose-300" };
     case "error":
