@@ -36,7 +36,7 @@ export function Header({
                 Checking… {progress.done}/{progress.total}
               </>
             ) : (
-              "Refresh now"
+              "Refresh all"
             )}
           </Button>
         </div>
