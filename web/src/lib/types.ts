@@ -11,5 +11,6 @@ export interface CurrentCell {
   redirect_to: string | null;
   ts: number;
   since_ts: number;
+  first_ts: number;
 }
-export interface HistoryRow extends Omit<CurrentCell, "since_ts"> {}
+export interface HistoryRow extends Omit<CurrentCell, "since_ts" | "first_ts"> {}

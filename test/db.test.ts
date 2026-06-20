@@ -18,12 +18,16 @@ describe("db", () => {
     expect(cur.length).toBe(1);
     expect(cur[0].backend).toBe("nginx");
     expect(cur[0].since_ts).toBe(100); // unchanged backend keeps since_ts
+    expect(cur[0].first_ts).toBe(100); // first-tracked ts
+    expect(cur[0].since_ts).toBe(cur[0].first_ts); // => "no changes since tracked"
 
     const res = await appendAndUpsert(db, [row("vercel", 300)]);
     expect(res.changed.map((c) => c.market)).toContain("US");
     cur = await getStatus(db);
     expect(cur[0].backend).toBe("vercel");
     expect(cur[0].since_ts).toBe(300); // flipped -> since_ts advances
+    expect(cur[0].first_ts).toBe(100); // first_ts never moves
+    expect(cur[0].since_ts).not.toBe(cur[0].first_ts); // => a real flip
 
     const hist = await getHistory(db, { env: "qa", host_variant: "com", market: "US", concern: "main" }, 10);
     expect(hist.length).toBe(3);

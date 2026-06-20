@@ -26,3 +26,14 @@ export function sinceLabel(since_ts: number, now = Date.now()): string {
   if (hrs < 48) return `flipped ${hrs}h ago`;
   return `flipped ${Math.round(hrs / 24)}d ago`;
 }
+
+// "flipped Xm ago" only when the backend actually changed since we started
+// tracking the cell. If it's held its value since the first check (since_ts ===
+// first_ts), nothing flipped — saying "flipped" would be misleading.
+export function changeSummary(
+  cell: { since_ts: number; first_ts: number },
+  now = Date.now()
+): string {
+  if (cell.since_ts === cell.first_ts) return "no changes since tracked";
+  return sinceLabel(cell.since_ts, now);
+}

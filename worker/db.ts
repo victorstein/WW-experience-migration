@@ -31,13 +31,15 @@ export async function appendAndUpsert(
     );
     stmts.push(
       db.prepare(
-        `INSERT INTO current (env, host_variant, market, concern, url, backend, http_status, matched_path, redirect_to, ts, since_ts)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?)
+        `INSERT INTO current (env, host_variant, market, concern, url, backend, http_status, matched_path, redirect_to, ts, since_ts, first_ts)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?)
          ON CONFLICT(env, host_variant, market, concern) DO UPDATE SET
            url=excluded.url, backend=excluded.backend, http_status=excluded.http_status,
            matched_path=excluded.matched_path, redirect_to=excluded.redirect_to, ts=excluded.ts,
-           since_ts = CASE WHEN current.backend = excluded.backend THEN current.since_ts ELSE excluded.ts END`
-      ).bind(r.env, r.host_variant, r.market, r.concern, r.url, r.backend, r.http_status, r.matched_path, r.redirect_to, r.ts, r.ts)
+           since_ts = CASE WHEN current.backend = excluded.backend THEN current.since_ts ELSE excluded.ts END
+           -- first_ts intentionally NOT in the SET clause: it keeps the original
+           -- first-tracked ts so we can tell "stable since first tracked" from a real flip.`
+      ).bind(r.env, r.host_variant, r.market, r.concern, r.url, r.backend, r.http_status, r.matched_path, r.redirect_to, r.ts, r.ts, r.ts)
     );
   }
   await db.batch(stmts);

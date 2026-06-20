@@ -1,7 +1,7 @@
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { CurrentCell } from "@/lib/types";
-import { verdict, sinceLabel } from "@/lib/verdict";
+import { verdict, changeSummary } from "@/lib/verdict";
 
 export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: boolean }) {
   // Short, vertically-centered divider on the left of every concern cell — the
@@ -42,7 +42,7 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
             <div className="flex flex-wrap items-center gap-x-2 text-xs opacity-75">
               <span>HTTP {cell.http_status ?? "—"}</span>
               {cell.redirect_to && <span className="break-all">→ {cell.redirect_to}</span>}
-              <span>· {sinceLabel(cell.since_ts)}</span>
+              <span>· {changeSummary(cell)}</span>
             </div>
           </div>
         </TooltipContent>

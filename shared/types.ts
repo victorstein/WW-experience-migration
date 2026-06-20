@@ -36,4 +36,5 @@ export interface CheckRow extends Cell {
 
 export interface CurrentRow extends CheckRow {
   since_ts: number;
+  first_ts: number; // ts of the first-ever check for this cell (never changes)
 }

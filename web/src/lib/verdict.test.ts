@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { verdict } from "./verdict";
+import { verdict, changeSummary } from "./verdict";
 
 describe("verdict", () => {
   it("maps backends to label + color", () => {
@@ -9,5 +9,14 @@ describe("verdict", () => {
     expect(verdict("404").label).toBe("404");
     expect(verdict("error").label).toBe("error");
     expect(verdict("vercel").className).toContain("bg-");
+  });
+});
+
+describe("changeSummary", () => {
+  it("says 'no changes since tracked' when stable since the first check", () => {
+    expect(changeSummary({ since_ts: 100, first_ts: 100 })).toBe("no changes since tracked");
+  });
+  it("reports a real flip when since_ts moved past first_ts", () => {
+    expect(changeSummary({ since_ts: 100, first_ts: 50 })).toMatch(/^flipped /);
   });
 });

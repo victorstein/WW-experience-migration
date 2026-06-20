@@ -18,6 +18,7 @@ CREATE TABLE current (
   url TEXT, backend TEXT, http_status INTEGER,
   matched_path TEXT, redirect_to TEXT,
   ts INTEGER, since_ts INTEGER,
+  first_ts INTEGER,   -- ts of the very first check for this cell; never updated
   PRIMARY KEY (env, host_variant, market, concern)
 );
 
