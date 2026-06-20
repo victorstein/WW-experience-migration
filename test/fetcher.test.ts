@@ -19,14 +19,17 @@ describe("probe", () => {
     expect(r.finalHeaders["server"]).toBe("Vercel");
   });
 
-  it("stops at the hop cap and throws", async () => {
-    // Every hop's Location points at /next, so the actual chain is
-    // /1 -> /next -> /next -> ... (the /2../6 interceptors in the original
-    // plan fixture are unreachable and would trip assertNoPendingInterceptors).
+  it("stops at the hop cap and returns what it saw instead of throwing", async () => {
+    // Every hop's Location points at /next, so the chain is /1 -> /next -> /next…
+    // Past the cap we keep the observation (a still-redirecting 3xx) rather than
+    // discarding it as an error — that's what lets AU's funnel become a `redirect`.
     fetchMock.get("https://loop.test").intercept({ path: "/1" })
       .reply(302, "", { headers: { location: "https://loop.test/next" } });
     fetchMock.get("https://loop.test").intercept({ path: "/next" })
       .reply(302, "", { headers: { location: "https://loop.test/next" } }).persist();
-    await expect(probe("https://loop.test/1", 5)).rejects.toThrow(/hop cap/i);
+    const r = await probe("https://loop.test/1", 5);
+    expect(r.chain.length).toBe(5); // 5 fetches, all redirects recorded
+    expect(r.finalStatus).toBe(302); // still redirecting at the cap
+    expect(r.chain[4].location).toBe("https://loop.test/next");
   });
 });

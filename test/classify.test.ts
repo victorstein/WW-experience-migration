@@ -59,6 +59,22 @@ describe("classify", () => {
     expect(r.backend).toBe("nginx");
   });
 
+  it("capped redirect chain (still 3xx, not the experience finder) => redirect to last destination", () => {
+    // AU's /workshops funnels through 5 Vercel redirects to /au/plans without ever
+    // hitting a 200 within budget. The probe now returns the chain instead of
+    // throwing, and this should read as a redirect — not an error.
+    const chain: Hop[] = [
+      { status: 301, location: "https://www.weightwatchers.com/au/workshops" },
+      { status: 308, location: "/au/group-coaching" },
+      { status: 308, location: "/au/plans/workshop-digital" },
+      { status: 308, location: "/au/plans/premium" },
+      { status: 308, location: "/au/plans" },
+    ];
+    const r = classify(308, H({ server: "Vercel", "x-vercel-id": "z" }), chain);
+    expect(r.backend).toBe("redirect");
+    expect(r.redirect_to).toBe("/au/plans");
+  });
+
   it("404 => 404", () => {
     const r = classify(404, H({ server: "Vercel", "x-vercel-id": "x" }), NOCHAIN);
     expect(r.backend).toBe("404");

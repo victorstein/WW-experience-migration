@@ -11,6 +11,8 @@ const TIMEOUT_MS = 10_000;
 export async function probe(startUrl: string, maxHops = 5): Promise<ProbeResult> {
   const chain: Hop[] = [];
   let url = startUrl;
+  let finalStatus = 0;
+  let finalHeaders: Record<string, string> = {};
 
   // `hop < maxHops` caps total fetch() calls at maxHops (5), NOT maxHops+1.
   // Each fetch is a subrequest; the free-tier budget is 50/invocation and the
@@ -31,19 +33,23 @@ export async function probe(startUrl: string, maxHops = 5): Promise<ProbeResult>
       clearTimeout(timer);
     }
 
-    const status = res.status;
+    finalStatus = res.status;
+    finalHeaders = {};
+    res.headers.forEach((v, k) => (finalHeaders[k] = v));
+
     const location = res.headers.get("location");
-    const isRedirect = status >= 300 && status < 400 && !!location;
+    const isRedirect = finalStatus >= 300 && finalStatus < 400 && !!location;
+    if (!isRedirect) return { chain, finalStatus, finalHeaders };
 
-    if (!isRedirect) {
-      const finalHeaders: Record<string, string> = {};
-      res.headers.forEach((v, k) => (finalHeaders[k] = v));
-      return { chain, finalStatus: status, finalHeaders };
-    }
-
-    chain.push({ status, location });
+    chain.push({ status: finalStatus, location });
     url = new URL(location!, url).toString(); // resolve relative Location
   }
 
-  throw new Error(`hop cap exceeded (${maxHops}) starting at ${startUrl}`);
+  // Hop cap hit while still redirecting. Don't discard the observation: the chain
+  // (and its last 3xx destination) is real — the URL funnels somewhere without
+  // resolving within budget (e.g. AU's /workshops → … → /au/plans). Returning lets
+  // classify() report it as a `redirect` instead of a misleading `error`, at the
+  // same 5-fetch budget — no extra subrequest. A genuine fetch failure still throws
+  // above and is recorded as backend=error by the caller.
+  return { chain, finalStatus, finalHeaders };
 }

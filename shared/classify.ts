@@ -53,7 +53,15 @@ export function classify(
     return make("other");
   }
 
-  // 3) 404 / everything else.
+  // 3) Still redirecting when the hop budget ran out (finalStatus is 3xx). The URL
+  // funnels somewhere that isn't a workshop and isn't the experience finder (caught
+  // above) — e.g. AU's /workshops → … → /au/plans. Report it as a redirect to the
+  // last known destination instead of letting the probe error out.
+  if (finalStatus >= 300 && finalStatus < 400) {
+    return make("redirect", chain[chain.length - 1]?.location ?? null);
+  }
+
+  // 4) 404 / everything else.
   if (finalStatus === 404) return make("404");
   return make("other");
 }
