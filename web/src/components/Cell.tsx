@@ -24,17 +24,19 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
     <div className={WRAP}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span
-            tabIndex={0}
+          <a
+            href={cell.url}
+            target="_blank"
+            rel="noopener noreferrer"
             className={cn(
-              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset outline-none transition",
+              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset outline-none transition cursor-pointer",
               "hover:-translate-y-px focus-visible:ring-2 focus-visible:ring-ring",
               loading && "animate-pulse opacity-70",
               v.className
             )}
           >
             {v.label}
-          </span>
+          </a>
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-md">
           <div className="flex flex-col gap-1 py-0.5">
@@ -44,6 +46,12 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
               {cell.redirect_to && <span className="break-all">→ {cell.redirect_to}</span>}
               <span>· {changeSummary(cell)}</span>
             </div>
+            {cell.matched_path && (
+              <div className="break-all font-mono text-[11px] opacity-60">
+                matched: {cell.matched_path}
+              </div>
+            )}
+            <div className="text-[11px] opacity-50">opens in a new tab ↗</div>
           </div>
         </TooltipContent>
       </Tooltip>
