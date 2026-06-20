@@ -12,20 +12,35 @@ export const app = new Hono<{ Bindings: AppEnv }>();
 const statusCacheKey = (url: string) => new Request(new URL("/api/status", url).toString());
 const bustStatusCache = (url: string) => caches.default.delete(statusCacheKey(url));
 
+// Return a copy that the BROWSER must never cache. The edge collapse below lives
+// entirely in caches.default; the client always re-requests so the 30s poll sees
+// fresh data. Critically, the response must read as non-cacheable to Cloudflare so
+// the zone's Browser Cache TTL (4h) can't override our intent and pin a stale copy
+// in the browser's disk cache for hours.
+const noStore = (res: Response): Response => {
+  const r = new Response(res.body, res);
+  r.headers.set("Cache-Control", "no-store");
+  return r;
+};
+
 // Hot read path: every page load and 30s client poll hits this. Edge-cache it for
-// 30s so a burst of viewers per colo collapses to a single D1 read; writes bust the
-// cache so the next poll reflects them. lastSweepTs/cooldown drive the shared
-// "Refresh all" countdown — both are absolute, so a slightly stale cache is fine
-// (clients tick the countdown locally against lastSweepTs).
+// 30s in caches.default so a burst of viewers per colo collapses to a single D1
+// read; writes bust the cache so the next poll reflects them. The client copy is
+// no-store (see above) — the colo cache, not the browser, absorbs the polling.
+// lastSweepTs/cooldown drive the shared "Refresh all" countdown — both absolute,
+// so a slightly stale colo cache is fine (clients tick the countdown locally).
 app.get("/api/status", async (c) => {
-  const cached = await caches.default.match(statusCacheKey(c.req.url));
-  if (cached) return cached;
+  const key = statusCacheKey(c.req.url);
+  const cached = await caches.default.match(key);
+  if (cached) return noStore(cached);
 
   const [cells, lastSweepTs] = await Promise.all([getStatus(c.env.DB), getLastSweep(c.env.DB)]);
   const res = c.json({ cells, sliceCount: sliceCount(), slicePlan: slicePlan(), lastSweepTs, cooldown: SWEEP_COOLDOWN_S });
+  // The cached copy must be cacheable for caches.default to accept it (the Cache
+  // API rejects no-store), so it carries max-age=30; only the colo cache sees it.
   res.headers.set("Cache-Control", "public, max-age=30");
-  await caches.default.put(statusCacheKey(c.req.url), res.clone());
-  return res;
+  await caches.default.put(key, res.clone());
+  return noStore(res);
 });
 
 app.get("/api/history", async (c) => {
