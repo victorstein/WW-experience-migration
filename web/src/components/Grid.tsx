@@ -5,6 +5,9 @@ import type { CurrentCell } from "@/lib/types";
 import type { MarketLoad } from "@/lib/progress";
 
 const MARKETS = ["US", "UK", "CA/EN", "CA/FR", "AU", "NZ", "DE", "FR", "BE/FR", "BE/NL", "SE"];
+// Markets with no separate canonical TLD — their canonical IS .com, so the
+// canonical tabs have nothing distinct to show for them.
+const NO_CANONICAL = new Set(["US", "NZ"]);
 const CONCERNS = [
   { key: "gateway", label: "Gateway" },
   { key: "main", label: "Main" },
@@ -20,11 +23,11 @@ const COLS = "grid grid-cols-[232px_repeat(6,minmax(0,1fr))]";
 export function Grid({
   cells,
   marketLoad,
-  onSelect,
+  hostVariant,
 }: {
   cells: CurrentCell[];
   marketLoad?: Record<string, MarketLoad>;
-  onSelect: (c: CurrentCell) => void;
+  hostVariant: "com" | "canonical";
 }) {
   const byKey = new Map(cells.map((c) => [`${c.market}|${c.concern}`, c]));
 
@@ -56,6 +59,9 @@ export function Grid({
         {MARKETS.map((m) => {
           const load = marketLoad?.[m] ?? "idle";
           const host = hostByMarket.get(m);
+          // US/NZ have no canonical domain — on the canonical tabs there's
+          // nothing distinct to check, so flag it rather than render dead cells.
+          const sameAsCom = hostVariant === "canonical" && NO_CANONICAL.has(m);
           return (
             <div
               key={m}
@@ -77,17 +83,16 @@ export function Grid({
                   </div>
                 )}
               </div>
-              {CONCERNS.map((c) => {
-                const cell = byKey.get(`${m}|${c.key}`);
-                return (
-                  <Cell
-                    key={c.key}
-                    cell={cell}
-                    loading={load === "loading"}
-                    onClick={() => cell && onSelect(cell)}
-                  />
-                );
-              })}
+              {sameAsCom ? (
+                <div className="col-span-6 flex items-center px-4 text-sm italic text-muted-foreground">
+                  same as .com
+                </div>
+              ) : (
+                CONCERNS.map((c) => {
+                  const cell = byKey.get(`${m}|${c.key}`);
+                  return <Cell key={c.key} cell={cell} loading={load === "loading"} />;
+                })
+              )}
             </div>
           );
         })}

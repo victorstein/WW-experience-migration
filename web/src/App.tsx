@@ -5,7 +5,6 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
 import { Header } from "@/components/Header";
 import { Grid } from "@/components/Grid";
-import { CellDetail } from "@/components/CellDetail";
 import { fetchStatus, refreshSlices } from "@/lib/api";
 import { marketSlices, marketStatus, type MarketLoad } from "@/lib/progress";
 import type { CurrentCell } from "@/lib/types";
@@ -17,7 +16,6 @@ export default function App() {
   const [sliceCount, setSliceCount] = useState(20);
   const [slicePlan, setSlicePlan] = useState<string[][]>([]);
   const [variant, setVariant] = useState<VariantKey>("qa/com");
-  const [selected, setSelected] = useState<CurrentCell | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 20 });
 
@@ -78,14 +76,13 @@ export default function App() {
             </TabsList>
           </Tabs>
           <div className="mt-6">
-            <Grid cells={filtered} marketLoad={marketLoad} onSelect={setSelected} />
+            <Grid cells={filtered} marketLoad={marketLoad} hostVariant={host_variant} />
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
             NL, CH/DE, CH/FR are Core-only (no workshops) — not tracked.
           </p>
         </main>
       </div>
-      <CellDetail cell={selected} onClose={() => setSelected(null)} />
       <Toaster />
     </TooltipProvider>
   );

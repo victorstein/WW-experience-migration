@@ -3,15 +3,7 @@ import { cn } from "@/lib/utils";
 import type { CurrentCell } from "@/lib/types";
 import { verdict, sinceLabel } from "@/lib/verdict";
 
-export function Cell({
-  cell,
-  loading = false,
-  onClick,
-}: {
-  cell?: CurrentCell;
-  loading?: boolean;
-  onClick: () => void;
-}) {
+export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: boolean }) {
   // Short, vertically-centered divider on the left of every concern cell — the
   // subtle column separators from the WW session list.
   const WRAP =
@@ -32,29 +24,26 @@ export function Cell({
     <div className={WRAP}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button
-            onClick={onClick}
+          <span
+            tabIndex={0}
             className={cn(
-              "rounded-full outline-none transition focus-visible:ring-2 focus-visible:ring-ring",
-              "hover:-translate-y-px hover:shadow-sm",
-              loading && "animate-pulse opacity-70"
+              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset outline-none transition",
+              "hover:-translate-y-px focus-visible:ring-2 focus-visible:ring-ring",
+              loading && "animate-pulse opacity-70",
+              v.className
             )}
           >
-            <span
-              className={cn(
-                "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset",
-                v.className
-              )}
-            >
-              {v.label}
-            </span>
-          </button>
+            {v.label}
+          </span>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-xs">
-          <div className="break-all text-xs font-medium">{cell.url}</div>
-          <div className="mt-0.5 text-xs text-muted-foreground">
-            HTTP {cell.http_status ?? "—"}
-            {cell.redirect_to ? ` → ${cell.redirect_to}` : ""} · {sinceLabel(cell.since_ts)}
+        <TooltipContent side="top" className="max-w-md">
+          <div className="flex flex-col gap-1 py-0.5">
+            <div className="break-all font-mono text-xs font-medium">{cell.url}</div>
+            <div className="flex flex-wrap items-center gap-x-2 text-xs opacity-75">
+              <span>HTTP {cell.http_status ?? "—"}</span>
+              {cell.redirect_to && <span className="break-all">→ {cell.redirect_to}</span>}
+              <span>· {sinceLabel(cell.since_ts)}</span>
+            </div>
           </div>
         </TooltipContent>
       </Tooltip>
