@@ -46,11 +46,10 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
               {cell.redirect_to && <span className="break-all">→ {cell.redirect_to}</span>}
               <span>· {changeSummary(cell)}</span>
             </div>
-            {cell.matched_path && (
-              <div className="break-all font-mono text-[11px] opacity-60">
-                matched: {cell.matched_path}
-              </div>
-            )}
+            <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] opacity-60">
+              <span>server: {cell.server || "—"}</span>
+              {cell.matched_path && <span className="break-all">· matched: {cell.matched_path}</span>}
+            </div>
             <div className="text-[11px] opacity-50">opens in a new tab ↗</div>
           </div>
         </TooltipContent>
