@@ -10,6 +10,9 @@ export interface CurrentCell {
   matched_path: string | null;
   redirect_to: string | null;
   server: string | null;
+  via: string | null;
+  served_by: string | null;
+  vercel_id: string | null;
   ts: number;
   since_ts: number;
   first_ts: number;

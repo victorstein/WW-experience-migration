@@ -46,9 +46,20 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
               {cell.redirect_to && <span className="break-all">→ {cell.redirect_to}</span>}
               <span>· {changeSummary(cell)}</span>
             </div>
-            <div className="flex flex-wrap items-center gap-x-2 font-mono text-[11px] opacity-60">
-              <span>server: {cell.server || "—"}</span>
-              {cell.matched_path && <span className="break-all">· matched: {cell.matched_path}</span>}
+            <div className="flex flex-col gap-0.5 font-mono text-[11px] opacity-60">
+              <div className="flex flex-wrap items-center gap-x-2">
+                <span>server: {cell.server || "—"}</span>
+                <span className="break-all">
+                  x-vercel-id: {cell.vercel_id || "— (absent)"}
+                </span>
+              </div>
+              {(cell.via || cell.served_by || cell.matched_path) && (
+                <div className="flex flex-wrap items-center gap-x-2 break-all">
+                  {cell.via && <span>via: {cell.via}</span>}
+                  {cell.served_by && <span>served-by: {cell.served_by}</span>}
+                  {cell.matched_path && <span>matched: {cell.matched_path}</span>}
+                </div>
+              )}
             </div>
             <div className="text-[11px] opacity-50">opens in a new tab ↗</div>
           </div>

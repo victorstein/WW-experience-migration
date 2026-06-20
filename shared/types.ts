@@ -23,6 +23,7 @@ export interface CheckOutcome {
   server: string | null;
   via: string | null;
   served_by: string | null;
+  vercel_id: string | null;
 }
 
 export interface CheckRow extends Cell {
@@ -31,7 +32,13 @@ export interface CheckRow extends Cell {
   backend: Backend;
   matched_path: string | null;
   redirect_to: string | null;
-  server: string | null; // response `Server` header — makes an `other` verdict debuggable
+  // Response-header fingerprints captured to make an `other` verdict debuggable.
+  // `Server` is overwritten to "cloudflare" for every cell, so the real
+  // discriminators are `x-vercel-id` (the migrated app) plus `via`/`x-served-by`.
+  server: string | null;
+  via: string | null;
+  served_by: string | null;
+  vercel_id: string | null;
   ts: number;
 }
 

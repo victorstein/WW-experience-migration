@@ -44,7 +44,8 @@ async function checkCell(cell: Cell, now: number): Promise<CheckRow> {
   return {
     ...cell, url, ts: now,
     http_status: o.finalStatus, backend: o.backend,
-    matched_path: o.matched_path, redirect_to: o.redirect_to, server: o.server,
+    matched_path: o.matched_path, redirect_to: o.redirect_to,
+    server: o.server, via: o.via, served_by: o.served_by, vercel_id: o.vercel_id,
   };
 }
 
@@ -52,7 +53,8 @@ function errorRow(cell: Cell, now: number, message: string): CheckRow {
   return {
     ...cell, url: buildUrl(cell), ts: now,
     http_status: null, backend: "error",
-    matched_path: message.slice(0, 200), redirect_to: null, server: null,
+    matched_path: message.slice(0, 200), redirect_to: null,
+    server: null, via: null, served_by: null, vercel_id: null,
   };
 }
 

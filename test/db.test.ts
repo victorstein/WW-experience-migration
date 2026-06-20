@@ -6,7 +6,9 @@ import type { CheckRow } from "../shared/types";
 const row = (backend: string, ts: number): CheckRow => ({
   env: "qa", host_variant: "com", market: "US", concern: "main",
   url: "https://x/us/find-a-workshop", http_status: 200, backend: backend as any,
-  matched_path: null, redirect_to: null, server: `srv-${backend}`, ts,
+  matched_path: null, redirect_to: null,
+  server: `srv-${backend}`, via: `via-${backend}`, served_by: `sb-${backend}`, vercel_id: `vid-${backend}`,
+  ts,
 });
 
 describe("db", () => {
@@ -18,6 +20,9 @@ describe("db", () => {
     expect(cur.length).toBe(1);
     expect(cur[0].backend).toBe("nginx");
     expect(cur[0].server).toBe("srv-nginx"); // response Server header persisted
+    expect(cur[0].via).toBe("via-nginx");
+    expect(cur[0].served_by).toBe("sb-nginx");
+    expect(cur[0].vercel_id).toBe("vid-nginx"); // discriminating fingerprints persisted
     expect(cur[0].since_ts).toBe(100); // unchanged backend keeps since_ts
     expect(cur[0].first_ts).toBe(100); // first-tracked ts
     expect(cur[0].since_ts).toBe(cur[0].first_ts); // => "no changes since tracked"

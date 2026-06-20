@@ -17,33 +17,30 @@ export function classify(
   const server = h["server"] ?? null;
   const via = h["via"] ?? null;
   const served_by = h["x-served-by"] ?? null;
+  const vercel_id = h["x-vercel-id"] ?? null;
   const matched_path = h["x-matched-path"] ?? null;
-  const isVercel = !!h["x-vercel-id"] || /vercel/i.test(server ?? "");
+  const isVercel = !!vercel_id || /vercel/i.test(server ?? "");
+
+  // All non-classification fields are header-derived and identical across every
+  // return path — build them once and spread into each outcome.
+  const meta = { finalStatus, matched_path, server, via, served_by, vercel_id };
+  const make = (backend: Backend, redirect_to: string | null = null): CheckOutcome => ({
+    backend, redirect_to, ...meta,
+  });
 
   // 1) Any redirect hop landing on an experience slug.
   const expHop = chain.find((hop) => hop.location && EXP_SLUGS.test(hop.location));
-  if (expHop) {
-    return outcome("redirect-exp", finalStatus, matched_path, expHop.location, server, via, served_by);
-  }
+  if (expHop) return make("redirect-exp", expHop.location);
 
   // 2) Final 200.
   if (finalStatus >= 200 && finalStatus < 300) {
-    if (isVercel && matched_path && EXP_SLUGS.test(matched_path)) {
-      return outcome("redirect-exp", finalStatus, matched_path, null, server, via, served_by);
-    }
-    if (isVercel) return outcome("vercel", finalStatus, matched_path, null, server, via, served_by);
-    if (/nginx/i.test(server ?? "")) return outcome("nginx", finalStatus, matched_path, null, server, via, served_by);
-    return outcome("other", finalStatus, matched_path, null, server, via, served_by);
+    if (isVercel && matched_path && EXP_SLUGS.test(matched_path)) return make("redirect-exp");
+    if (isVercel) return make("vercel");
+    if (/nginx/i.test(server ?? "")) return make("nginx");
+    return make("other");
   }
 
   // 3) 404 / everything else.
-  if (finalStatus === 404) return outcome("404", finalStatus, matched_path, null, server, via, served_by);
-  return outcome("other", finalStatus, matched_path, null, server, via, served_by);
-}
-
-function outcome(
-  backend: Backend, finalStatus: number, matched_path: string | null,
-  redirect_to: string | null, server: string | null, via: string | null, served_by: string | null
-): CheckOutcome {
-  return { backend, finalStatus, matched_path, redirect_to, server, via, served_by };
+  if (finalStatus === 404) return make("404");
+  return make("other");
 }

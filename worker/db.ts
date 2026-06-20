@@ -25,21 +25,22 @@ export async function appendAndUpsert(
   for (const r of rows) {
     stmts.push(
       db.prepare(
-        `INSERT INTO checks (ts, env, host_variant, market, concern, url, http_status, backend, matched_path, redirect_to, server)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?)`
-      ).bind(r.ts, r.env, r.host_variant, r.market, r.concern, r.url, r.http_status, r.backend, r.matched_path, r.redirect_to, r.server)
+        `INSERT INTO checks (ts, env, host_variant, market, concern, url, http_status, backend, matched_path, redirect_to, server, via, served_by, vercel_id)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`
+      ).bind(r.ts, r.env, r.host_variant, r.market, r.concern, r.url, r.http_status, r.backend, r.matched_path, r.redirect_to, r.server, r.via, r.served_by, r.vercel_id)
     );
     stmts.push(
       db.prepare(
-        `INSERT INTO current (env, host_variant, market, concern, url, backend, http_status, matched_path, redirect_to, server, ts, since_ts, first_ts)
-         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)
+        `INSERT INTO current (env, host_variant, market, concern, url, backend, http_status, matched_path, redirect_to, server, via, served_by, vercel_id, ts, since_ts, first_ts)
+         VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
          ON CONFLICT(env, host_variant, market, concern) DO UPDATE SET
            url=excluded.url, backend=excluded.backend, http_status=excluded.http_status,
-           matched_path=excluded.matched_path, redirect_to=excluded.redirect_to, server=excluded.server, ts=excluded.ts,
+           matched_path=excluded.matched_path, redirect_to=excluded.redirect_to,
+           server=excluded.server, via=excluded.via, served_by=excluded.served_by, vercel_id=excluded.vercel_id, ts=excluded.ts,
            since_ts = CASE WHEN current.backend = excluded.backend THEN current.since_ts ELSE excluded.ts END
            -- first_ts intentionally NOT in the SET clause: it keeps the original
            -- first-tracked ts so we can tell "stable since first tracked" from a real flip.`
-      ).bind(r.env, r.host_variant, r.market, r.concern, r.url, r.backend, r.http_status, r.matched_path, r.redirect_to, r.server, r.ts, r.ts, r.ts)
+      ).bind(r.env, r.host_variant, r.market, r.concern, r.url, r.backend, r.http_status, r.matched_path, r.redirect_to, r.server, r.via, r.served_by, r.vercel_id, r.ts, r.ts, r.ts)
     );
   }
   await db.batch(stmts);
@@ -56,7 +57,7 @@ export async function getStatus(db: D1Database): Promise<CurrentRow[]> {
 export async function getHistory(db: D1Database, cell: Cell, limit: number): Promise<CheckRow[]> {
   const res = await db
     .prepare(
-      `SELECT env, host_variant, market, concern, url, http_status, backend, matched_path, redirect_to, server, ts
+      `SELECT env, host_variant, market, concern, url, http_status, backend, matched_path, redirect_to, server, via, served_by, vercel_id, ts
        FROM checks WHERE env=? AND host_variant=? AND market=? AND concern=? ORDER BY ts DESC LIMIT ?`
     )
     .bind(cell.env, cell.host_variant, cell.market, cell.concern, limit)
