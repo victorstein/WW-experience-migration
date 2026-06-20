@@ -120,8 +120,9 @@ export default function App() {
         <Header lastTs={lastTs} refreshing={refreshing} progress={progress} cooldownRemaining={cooldownRemaining} onRefresh={handleRefresh} />
         <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-10 md:py-8">
           <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantKey)}>
-            {/* Scroll the tabs sideways on phones — all four don't fit at <640px. */}
-            <div className="-mx-1 overflow-x-auto px-1">
+            {/* Scroll the tabs sideways on phones — all four don't fit at <640px.
+                Hide the scrollbar itself; the row stays swipeable without the bar. */}
+            <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <TabsList className="rounded-full">
                 <TabsTrigger value="qa/com" className="shrink-0 whitespace-nowrap rounded-full px-4 sm:px-5">QA · .com</TabsTrigger>
                 <TabsTrigger value="qa/canonical" className="shrink-0 whitespace-nowrap rounded-full px-4 sm:px-5">QA · canonical</TabsTrigger>
