@@ -77,6 +77,35 @@ export async function setCursor(db: D1Database, n: number): Promise<void> {
     .run();
 }
 
+// Manual "Refresh all" is rate-limited so concurrent users can't kick off
+// overlapping full sweeps. The trigger time lives in `meta` and is the single
+// source of truth every client reads to render the shared cooldown countdown.
+// (The cron deliberately does NOT touch it — only a human sweep should lock it.)
+export const SWEEP_COOLDOWN_S = 90;
+
+export async function getLastSweep(db: D1Database): Promise<number> {
+  const res = await db.prepare("SELECT v FROM meta WHERE k='last_sweep_ts'").first<{ v: string }>();
+  return res ? parseInt(res.v, 10) : 0;
+}
+
+// Atomically claim a sweep: succeeds only when the previous one is older than the
+// cooldown. The conditional UPDATE is the compare-and-set — D1 serializes writes,
+// so two near-simultaneous claims can't both win (one gets changes=1, the other 0).
+export async function claimSweep(
+  db: D1Database,
+  now: number,
+  cooldown = SWEEP_COOLDOWN_S
+): Promise<{ ok: boolean; lastSweepTs: number; retryAfter: number }> {
+  await db.prepare("INSERT OR IGNORE INTO meta (k, v) VALUES ('last_sweep_ts', '0')").run();
+  const upd = await db
+    .prepare("UPDATE meta SET v=? WHERE k='last_sweep_ts' AND CAST(v AS INTEGER) <= ?")
+    .bind(String(now), now - cooldown)
+    .run();
+  if (upd.meta.changes === 1) return { ok: true, lastSweepTs: now, retryAfter: 0 };
+  const last = await getLastSweep(db);
+  return { ok: false, lastSweepTs: last, retryAfter: Math.max(0, last + cooldown - now) };
+}
+
 function key(c: Cell): string {
   return `${c.env}|${c.host_variant}|${c.market}|${c.concern}`;
 }

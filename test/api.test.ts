@@ -26,6 +26,27 @@ describe("api", () => {
     expect(res.headers.get("content-type")).toContain("application/json");
   });
 
+  it("POST /api/sweep claims once, then 429s within the cooldown with a countdown", async () => {
+    const first = await SELF.fetch("https://board/api/sweep", { method: "POST" });
+    expect(first.status).toBe(200);
+    const f = await first.json<{ ok: boolean; lastSweepTs: number }>();
+    expect(f.ok).toBe(true);
+    expect(f.lastSweepTs).toBeGreaterThan(0);
+
+    const second = await SELF.fetch("https://board/api/sweep", { method: "POST" });
+    expect(second.status).toBe(429);
+    const s = await second.json<{ ok: boolean; retryAfter: number }>();
+    expect(s.ok).toBe(false);
+    expect(s.retryAfter).toBeGreaterThan(0);
+  });
+
+  it("GET /api/status exposes lastSweepTs + cooldown for the shared countdown", async () => {
+    const res = await SELF.fetch("https://board/api/status");
+    const body = await res.json<Record<string, unknown>>();
+    expect(body).toHaveProperty("lastSweepTs");
+    expect(body).toHaveProperty("cooldown");
+  });
+
   it("GET /api/probe returns the live chain, headers, and edge classification", async () => {
     fetchMock.get("https://origin.test").intercept({ path: "/p" }).reply(200, "ok", {
       headers: { server: "cloudflare", via: "1.1 varnish, 1.1 varnish", "x-served-by": "cache-iad-a, cache-mia-b" },
