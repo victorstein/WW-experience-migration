@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { CurrentCell } from "@/lib/types";
@@ -20,6 +21,13 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
     );
   }
   const v = verdict(cell.backend);
+  const fingerprints: [string, string][] = [
+    ["server", cell.server || "—"],
+    ["x-vercel-id", cell.vercel_id || "— (absent)"],
+  ];
+  if (cell.via) fingerprints.push(["via", cell.via]);
+  if (cell.served_by) fingerprints.push(["served-by", cell.served_by]);
+  if (cell.matched_path) fingerprints.push(["matched", cell.matched_path]);
   return (
     <div className={WRAP}>
       <Tooltip>
@@ -46,21 +54,14 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
               {cell.redirect_to && <span className="break-all">→ {cell.redirect_to}</span>}
               <span>· {changeSummary(cell)}</span>
             </div>
-            <div className="flex flex-col gap-0.5 font-mono text-[11px] opacity-60">
-              <div className="flex flex-wrap items-center gap-x-2">
-                <span>server: {cell.server || "—"}</span>
-                <span className="break-all">
-                  x-vercel-id: {cell.vercel_id || "— (absent)"}
-                </span>
-              </div>
-              {(cell.via || cell.served_by || cell.matched_path) && (
-                <div className="flex flex-wrap items-center gap-x-2 break-all">
-                  {cell.via && <span>via: {cell.via}</span>}
-                  {cell.served_by && <span>served-by: {cell.served_by}</span>}
-                  {cell.matched_path && <span>matched: {cell.matched_path}</span>}
-                </div>
-              )}
-            </div>
+            <dl className="grid grid-cols-[max-content_1fr] gap-x-3 gap-y-0.5 font-mono text-[11px]">
+              {fingerprints.map(([k, val]) => (
+                <Fragment key={k}>
+                  <dt className="opacity-50">{k}</dt>
+                  <dd className="break-all opacity-80">{val}</dd>
+                </Fragment>
+              ))}
+            </dl>
             <div className="text-[11px] opacity-50">opens in a new tab ↗</div>
           </div>
         </TooltipContent>
