@@ -66,21 +66,21 @@ export default function App() {
 
   return (
     <TooltipProvider>
-      <div className="min-h-screen bg-muted/30">
+      <div className="min-h-screen bg-background">
         <Header lastTs={lastTs} refreshing={refreshing} progress={progress} onRefresh={handleRefresh} />
-        <main className="mx-auto max-w-6xl px-4 py-6">
+        <main className="mx-auto max-w-6xl px-6 py-8 md:px-10">
           <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantKey)}>
-            <TabsList>
-              <TabsTrigger value="qa/com">QA · .com</TabsTrigger>
-              <TabsTrigger value="qa/canonical">QA · canonical</TabsTrigger>
-              <TabsTrigger value="prod/com">Prod · .com</TabsTrigger>
-              <TabsTrigger value="prod/canonical">Prod · canonical</TabsTrigger>
+            <TabsList className="rounded-full">
+              <TabsTrigger value="qa/com" className="rounded-full">QA · .com</TabsTrigger>
+              <TabsTrigger value="qa/canonical" className="rounded-full">QA · canonical</TabsTrigger>
+              <TabsTrigger value="prod/com" className="rounded-full">Prod · .com</TabsTrigger>
+              <TabsTrigger value="prod/canonical" className="rounded-full">Prod · canonical</TabsTrigger>
             </TabsList>
           </Tabs>
-          <div className="mt-4">
+          <div className="mt-6">
             <Grid cells={filtered} marketLoad={marketLoad} onSelect={setSelected} />
           </div>
-          <p className="mt-4 text-xs text-muted-foreground">
+          <p className="mt-6 text-xs text-muted-foreground">
             NL, CH/DE, CH/FR are Core-only (no workshops) — not tracked.
           </p>
         </main>

@@ -1,6 +1,7 @@
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Loader2 } from "lucide-react";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 export interface RefreshProgress {
   done: number;
@@ -20,12 +21,15 @@ export function Header({
 }) {
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
   return (
-    <div className="border-b">
-      <div className="flex items-center justify-between p-4">
-        <h1 className="text-lg font-semibold">Workshops Status Board</h1>
-        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-          <span>{lastTs ? `Last data: ${new Date(lastTs * 1000).toLocaleString()}` : "No data yet"}</span>
-          <Button onClick={onRefresh} disabled={refreshing}>
+    <header className="sticky top-0 z-20 border-b bg-background/80 backdrop-blur">
+      <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-6 py-4 md:px-10">
+        <h1 className="text-base font-bold tracking-tight sm:text-lg">Workshops Status Board</h1>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="hidden text-sm text-muted-foreground md:inline">
+            {lastTs ? `Last data: ${new Date(lastTs * 1000).toLocaleString()}` : "No data yet"}
+          </span>
+          <ThemeToggle />
+          <Button onClick={onRefresh} disabled={refreshing} className="rounded-full px-5 font-semibold">
             {refreshing ? (
               <>
                 <Loader2 className="size-4 animate-spin" />
@@ -38,10 +42,10 @@ export function Header({
         </div>
       </div>
       {refreshing && (
-        <div className="px-4 pb-3" aria-live="polite">
-          <Progress value={pct} className="h-1.5" />
+        <div className="mx-auto max-w-6xl px-6 pb-3 md:px-10" aria-live="polite">
+          <Progress value={pct} className="h-1" />
         </div>
       )}
-    </div>
+    </header>
   );
 }
