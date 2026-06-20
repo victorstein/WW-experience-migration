@@ -32,6 +32,11 @@ describe("matrix", () => {
     expect(url).toBe("https://www.weightwatchers.com/de/workshop-finden/coaches");
   });
 
+  it("builds CA/FR coach-list URL with the /parcourir-ww-coachs slug", () => {
+    const url = buildUrl({ env: "qa", host_variant: "com", market: "CA/FR", concern: "coachlist" });
+    expect(url).toBe("https://www.qat2.weightwatchers.com/ca/fr/trouver-un-atelier/parcourir-ww-coachs");
+  });
+
   it("builds CA/FR canonical event URL on fr.weightwatchers.ca", () => {
     const url = buildUrl({ env: "qa", host_variant: "canonical", market: "CA/FR", concern: "eventdet" });
     expect(url).toBe("https://www.qat2.fr.weightwatchers.ca/ca/fr/trouver-un-atelier/virtual/25550661");
