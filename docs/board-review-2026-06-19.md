@@ -29,72 +29,102 @@ if (!env || !host_variant || !market || !concern) {
 
 ## 2. Slug accuracy — the main finding
 
-The board's truthfulness depends entirely on probing the **same URL each market actually
-serves as its new canonical workshop finder**. Source of truth (in priority order):
+> **Source of truth corrected.** The authority is the **app's own routing tables** in
+> `ww-marketing-website` — `apps/client/src/utils/routing/findAWorkshopRewrites.ts`
+> (`FIND_A_WORKSHOP_LOCALIZED_ROUTES`) and `localizedRoutes.ts` — cross-checked against live
+> `x-matched-path`. NOT the slug-translation sheet (stale in places) and NOT a QA tester's
+> thread assumption.
 
-1. **Live prod/QA behavior** (what Vercel actually answers — `x-matched-path` is decisive).
-2. **SB-rollout slug-translation sheet** — Google Sheet `1_9DJ9e6wmb3MtXgjJ9heY6VRuiHTlW88jhCQMbwFUlI`.
-3. NOT a QA tester's assumption in a thread (those often hit transitional/legacy slugs).
+### How the migration actually works (env-flag flip, not a slug swap)
 
-### Dual-run model (important context)
+`find-a-workshop` and `find-an-experience` **reuse the SAME localized slugs**. One env var,
+`ENABLE_FIND_A_WORKSHOP_ROUTING` (`localizedRoutingConfig.ts`), decides which internal route the
+localized slug maps to. They're mutually exclusive by construction.
 
-During the migration, **two or three slugs coexist per market**:
-- **new canonical** → should resolve on Vercel
-- **legacy localized slug** → still served by old nginx WSF (expected during dual-run)
-- **experience slug** → the find-an-experience page
+- **Flag OFF (prod today):** localized slug → `find-an-experience`
+- **Flag ON (QA today):** localized slug → `find-a-workshop`
 
-A market that localizes its slug (e.g. DE) wires the *localized* slug to Vercel and leaves
-the English `find-a-workshop` bouncing to old nginx. A market that doesn't (e.g. BE/NL) wires
-the *English* `find-a-workshop` to Vercel and leaves the localized slug unmigrated. So
-"English vs localized" is per-market, not uniform.
+The canonical user-facing slug is identical in both worlds; the migration just flips the target.
+Verified live via `x-matched-path`:
+
+```
+QA   /de/workshop-finden        → matched /de/find-a-workshop      (flag ON  → workshop)
+PROD /de/workshop-finden        → matched /de/find-an-experience   (flag OFF → experience)
+QA   /be/nl/vind-een-ervaring   → matched /be-nl/find-a-workshop   ✅
+PROD /be/nl/vind-een-ervaring   → matched /be-nl/find-an-experience
+```
+
+**The board's classifier already handles this correctly:** prod localized slugs classify as
+`redirect-exp` (matched_path contains an experience slug); QA ones classify as `vercel`. So the
+QA-vs-prod columns ARE the migration signal. DE/FR/SE are working right in both columns. The
+engine and approach are sound — the only defect is *which slug string* two markets use.
+
+### Per-market slugs
+
+The board tracks the **end-state canonical workshop slug** per market (so a market reads as a
+gap now and flips green when its app rewrite + Fastly whitelist land). For DE/FR/BE-FR/SE the
+end-state slug already equals what `findAWorkshopRewrites.ts` serves during the overlap. For
+**CA/FR and BE/NL the end-state slug differs from the current overlap table** (which still reuses
+the experience slug) — decided by Alfonso 2026-06-19:
+
+| Locale(s) | base | coaches | virtual | live today |
+|---|---|---|---|---|
+| en (US/UK/CA-EN/AU/NZ) | `find-a-workshop` | `…/browse-ww-coaches` | `…/virtual` | served |
+| de (DE) | `workshop-finden` | `…/coaches` | `…/virtuell` | served |
+| fr, be-fr | `trouver-un-atelier` | `…/parcourir-ww-coachs` | `…/virtuel` | served |
+| se | `hitta-workshop` | `…/browse-ww-coaches` | `…/virtuell` | served |
+| **ca-fr** | **`trouver-un-atelier`** | `…/parcourir-ww-coachs` | `…/virtuel` | **404 (not wired yet)** |
+| **be-nl** | **`vind-een-workshop`** | `…/bekijk-ww-coaches` | `…/online` | **404 (not wired yet)** |
+
+> The app's overlap table (`findAWorkshopRewrites.ts`) currently maps `ca-fr → trouver-une-experience`
+> and `be-nl → vind-een-ervaring` (experience slugs reused during dual-run). The canonical workshop
+> slugs above (`trouver-un-atelier`, `vind-een-workshop`) require the app's rewrite table to be
+> updated AND Fastly to whitelist them. Until then the board correctly shows these two as gaps.
 
 ### Audit of `shared/matrix.ts` `MARKETS[]` (verified live)
 
-| Market | Board slug | Canonical (verified) | Verdict |
+| Market | Board slug | Correct (code + live) | Verdict |
 |---|---|---|---|
 | US / UK / CA-EN / AU / NZ | `find-a-workshop` + `/browse-ww-coaches` | same | ✅ correct |
-| **DE** | `/de/workshop-finden` + `/coaches` | `/de/workshop-finden` | ✅ **correct** (sheet rows 686-687, 871-872; Pinal confirms `finde-einen-workshop` = OLD, `workshop-finden` = NEW) |
-| FR / BE-FR | `…/trouver-un-atelier` + `/parcourir-ww-coachs` | live: `parcourir-ww-coachs` → Vercel coach route ✅ | ✅ correct (sheet's `parcourir-les-coachs-ww` actually misroutes to a *location* on Vercel — board's slug is the working one) |
-| SE | `/se/hitta-workshop` | live → Vercel `/se/find-a-workshop` ✅ | ✅ correct |
-| **CA/FR** | `/ca/fr/trouvez-un-atelier` + `/browse-ww-coaches` | `/ca/fr/trouver-un-atelier` + `/parcourir-les-coachs-ww` | ❌ **board tracks the OLD slug** — fix below |
-| **BE/NL** | `/be/nl/vind-een-workshop` + `/browse-ww-coaches` | undecided — see below | ⚠️ **needs product decision** |
+| DE | `/de/workshop-finden` + `/coaches` | same | ✅ correct |
+| FR / BE-FR | `…/trouver-un-atelier` + `/parcourir-ww-coachs` | same | ✅ correct |
+| SE | `/se/hitta-workshop` | same | ✅ correct |
+| **CA/FR** | `/ca/fr/trouvez-un-atelier` + `/browse-ww-coaches` | `/ca/fr/trouver-un-atelier` + `/parcourir-ww-coachs` | ❌ wrong slug — fix below |
+| **BE/NL** | `/be/nl/vind-een-workshop` + `/browse-ww-coaches` (coach slug wrong) | `/be/nl/vind-een-workshop` + `/bekijk-ww-coaches` | ⚠️ base OK; coach slug wrong |
 
-### CA/FR — clear fix
+### CA/FR — fix
 
-`trouvez-un-atelier` is the **legacy** slug; the new canonical is **`trouver-un-atelier`**
-(sheet row 580; Gatti 2026-06-19 "we are serving: `trouver-un-atelier`"; Pinal POP-14875 is the
-`trouvez → trouver` redirect). Live now:
-
-```
-.com/ca/fr/trouver-un-atelier  → 404 (Fastly not yet whitelisted — the gap the team is closing)
-.com/ca/fr/trouvez-un-atelier  → 404 Vercel
-.ca (fr) /ca/fr/trouvez-…      → 200 nginx (old WSF)
-```
-
-Tracking `trouvez` means the board will **never show the `trouver` whitelist landing**. Change
-CA/FR to the canonical so the board flips green when Fastly whitelists `trouver`:
+Board uses `trouvez-un-atelier` (legacy). Canonical end-state slug is **`trouver-un-atelier`**
+(Alfonso's call; matches the slug sheet and Gatti "we serve trouver"). Currently 404s in QA (the
+app overlap table still serves `trouver-une-experience`, and Fastly hasn't whitelisted `trouver`)
+— so this will read as a gap until that work lands, which is correct.
 
 ```ts
 // shared/matrix.ts
-{ market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-les-coachs-ww", tld: "fr.weightwatchers.ca" },
+{ market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.ca" },
 ```
 
-### BE/NL — needs Alfonso's call (do NOT change yet)
+### BE/NL — fix
 
-`vind-een-workshop` is the **legacy** localized slug. Verified:
+Base slug `vind-een-workshop` is correct (Alfonso's call). The **coach suffix is wrong**: board
+uses `/browse-ww-coaches`; the Dutch coach slug is **`/bekijk-ww-coaches`** (per Pinal's redirect
+list and the app table). `vind-een-workshop` currently 404s in QA (only a legacy redirect
+destination today, not yet in `findAWorkshopRewrites.ts`) — reads as a gap until wired, which is
+correct.
 
+```ts
+// shared/matrix.ts
+{ market: "BE/NL", base: "/be/nl/vind-een-workshop", coach: "/bekijk-ww-coaches", tld: "weightwatchers.be" },
 ```
-PROD .be/be/nl/vind-een-workshop   → 200 nginx (old finder, live)
-PROD .com/be/nl/vind-een-workshop  → 302 → 200 Vercel /be/nl/vind-een-ervaring (experience redirect still active)
-QA   .com/be/nl/vind-een-workshop  → 404 Vercel (no such route in the new app)
-QA   .com/be/nl/find-a-workshop    → 200 Vercel /be-nl/find-a-workshop  ✅
-```
 
-So the **new app answers on `find-a-workshop`**, not the Dutch slug (inverse of DE). The board's
-current BE/NL rows (`nginx` on `.be`, `404` on `.com`) are *truthful* — they correctly show the
-Dutch slug as unmigrated. Two valid resolutions, pending decision:
-- **BE/NL localizes (like DE):** keep `vind-een-workshop`; board correctly flags the gap until it's wired to Vercel.
-- **BE/NL stays English:** change base to `/be/nl/find-a-workshop`; board goes green.
+### Localized DETAIL slugs (coachdet / eventdet) — also wrong for non-EN markets
+
+`shared/matrix.ts` builds detail URLs from English constants (`/virtual/<id>`,
+`/browse-ww-coaches/<id>`) for every market, but the segments are localized (`virtuell`/`virtuel`/
+`online`; `/coaches`, `/parcourir-ww-coachs`, `/bekijk-ww-coaches`). Result: non-EN detail rows can
+match the wrong Vercel route and false-green (e.g. BE/NL coachlist currently matches `/be-nl`, the
+homepage). Build the coach/virtual segments per-market from `findAWorkshopRewrites.ts` rather than
+hardcoding English. (Location-detail has no localized segment — `/<id>/<slug>` is fine.)
 
 ---
 

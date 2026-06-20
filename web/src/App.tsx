@@ -118,14 +118,17 @@ export default function App() {
     <TooltipProvider>
       <div className="min-h-screen bg-background">
         <Header lastTs={lastTs} refreshing={refreshing} progress={progress} cooldownRemaining={cooldownRemaining} onRefresh={handleRefresh} />
-        <main className="mx-auto max-w-6xl px-6 py-8 md:px-10">
+        <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-10 md:py-8">
           <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantKey)}>
-            <TabsList className="rounded-full">
-              <TabsTrigger value="qa/com" className="rounded-full px-5">QA · .com</TabsTrigger>
-              <TabsTrigger value="qa/canonical" className="rounded-full px-5">QA · canonical</TabsTrigger>
-              <TabsTrigger value="prod/com" className="rounded-full px-5">Prod · .com</TabsTrigger>
-              <TabsTrigger value="prod/canonical" className="rounded-full px-5">Prod · canonical</TabsTrigger>
-            </TabsList>
+            {/* Scroll the tabs sideways on phones — all four don't fit at <640px. */}
+            <div className="-mx-1 overflow-x-auto px-1">
+              <TabsList className="rounded-full">
+                <TabsTrigger value="qa/com" className="shrink-0 whitespace-nowrap rounded-full px-4 sm:px-5">QA · .com</TabsTrigger>
+                <TabsTrigger value="qa/canonical" className="shrink-0 whitespace-nowrap rounded-full px-4 sm:px-5">QA · canonical</TabsTrigger>
+                <TabsTrigger value="prod/com" className="shrink-0 whitespace-nowrap rounded-full px-4 sm:px-5">Prod · .com</TabsTrigger>
+                <TabsTrigger value="prod/canonical" className="shrink-0 whitespace-nowrap rounded-full px-4 sm:px-5">Prod · canonical</TabsTrigger>
+              </TabsList>
+            </div>
           </Tabs>
           <div className="mt-6">
             <Grid cells={filtered} marketLoad={marketLoad} hostVariant={host_variant} onReloadMarket={reloadMarket} />

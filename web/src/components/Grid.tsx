@@ -1,5 +1,5 @@
 import { Loader2, RotateCw } from "lucide-react";
-import { Cell } from "./Cell";
+import { Cell, CellPill } from "./Cell";
 import { cn } from "@/lib/utils";
 import type { CurrentCell } from "@/lib/types";
 import type { MarketLoad } from "@/lib/progress";
@@ -17,8 +17,9 @@ const CONCERNS = [
   { key: "locdet", label: "Location" },
 ] as const;
 
-// Shared column template: a fixed market column + 6 equal concern columns.
-const COLS = "grid grid-cols-[232px_repeat(6,minmax(0,1fr))]";
+// Desktop column template: a fixed market column + 6 equal concern columns. The
+// table scrolls horizontally below ~lg widths (tablets) via the min-width wrapper.
+const COLS = "grid grid-cols-[200px_repeat(6,minmax(0,1fr))]";
 
 export function Grid({
   cells,
@@ -44,68 +45,119 @@ export function Grid({
       /* ignore malformed url */
     }
   }
+
+  const meta = (m: string) => ({
+    load: marketLoad?.[m] ?? "idle",
+    host: hostByMarket.get(m),
+    // US/NZ have no canonical domain — on the canonical tabs there's nothing
+    // distinct to check, so flag it rather than render dead cells.
+    sameAsCom: hostVariant === "canonical" && NO_CANONICAL.has(m),
+  });
+
+  // Market name + reload control + host subheader — shared by both layouts.
+  const Heading = ({ m }: { m: string }) => {
+    const { load, host, sameAsCom } = meta(m);
+    return (
+      <div className="flex flex-col justify-center">
+        <div className="flex items-center gap-1.5 text-sm font-semibold">
+          {m}
+          {load === "loading" ? (
+            <Loader2 className="size-3.5 animate-spin text-primary" />
+          ) : !sameAsCom ? (
+            <button
+              type="button"
+              onClick={() => onReloadMarket?.(m)}
+              aria-label={`Reload ${m}`}
+              title={`Reload ${m}`}
+              className="rounded p-0.5 text-muted-foreground/50 transition hover:text-foreground"
+            >
+              <RotateCw className="size-3.5" />
+            </button>
+          ) : null}
+        </div>
+        {host && (
+          <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground" title={host}>
+            {host}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div>
-      {/* Header row — bold real-word labels with an underline rule (WW style). */}
-      <div className={cn(COLS, "border-b px-4 pb-3 text-sm font-bold")}>
-        <div>Market</div>
-        {CONCERNS.map((c) => (
-          <div key={c.key} className="text-center">
-            {c.label}
+      {/* ===== Tablet + desktop: the matrix table, horizontally scrollable ===== */}
+      <div className="hidden overflow-x-auto md:block">
+        <div className="min-w-[820px]">
+          {/* Header row — bold real-word labels with an underline rule (WW style). */}
+          <div className={cn(COLS, "border-b px-4 pb-3 text-sm font-bold")}>
+            <div>Market</div>
+            {CONCERNS.map((c) => (
+              <div key={c.key} className="text-center">
+                {c.label}
+              </div>
+            ))}
           </div>
-        ))}
+          {/* One rounded card per market; short inset dividers live on each cell. */}
+          <div className="mt-3 space-y-2.5">
+            {MARKETS.map((m) => {
+              const { load, sameAsCom } = meta(m);
+              return (
+                <div
+                  key={m}
+                  className={cn(
+                    COLS,
+                    "items-stretch overflow-hidden rounded-2xl bg-card shadow-sm transition",
+                    load === "pending" && "opacity-40",
+                    load === "loading" && "ring-2 ring-primary/40"
+                  )}
+                >
+                  <div className="px-4 py-5">
+                    <Heading m={m} />
+                  </div>
+                  {sameAsCom ? (
+                    <div className="col-span-6 flex items-center px-4 text-sm italic text-muted-foreground">
+                      same as .com
+                    </div>
+                  ) : (
+                    CONCERNS.map((c) => (
+                      <Cell key={c.key} cell={byKey.get(`${m}|${c.key}`)} loading={load === "loading"} />
+                    ))
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
-      {/* One rounded card per market; short inset dividers live on each cell. */}
-      <div className="mt-3 space-y-2.5">
+      {/* ===== Phones: one card per market, concerns stacked as labeled rows ===== */}
+      <div className="space-y-3 md:hidden">
         {MARKETS.map((m) => {
-          const load = marketLoad?.[m] ?? "idle";
-          const host = hostByMarket.get(m);
-          // US/NZ have no canonical domain — on the canonical tabs there's
-          // nothing distinct to check, so flag it rather than render dead cells.
-          const sameAsCom = hostVariant === "canonical" && NO_CANONICAL.has(m);
+          const { load, sameAsCom } = meta(m);
           return (
             <div
               key={m}
               className={cn(
-                COLS,
-                "items-stretch overflow-hidden rounded-2xl bg-card shadow-sm transition",
+                "overflow-hidden rounded-2xl bg-card shadow-sm transition",
                 load === "pending" && "opacity-40",
                 load === "loading" && "ring-2 ring-primary/40"
               )}
             >
-              <div className="flex flex-col justify-center px-4 py-5">
-                <div className="flex items-center gap-1.5 text-sm font-semibold">
-                  {m}
-                  {load === "loading" ? (
-                    <Loader2 className="size-3.5 animate-spin text-primary" />
-                  ) : !sameAsCom ? (
-                    <button
-                      type="button"
-                      onClick={() => onReloadMarket?.(m)}
-                      aria-label={`Reload ${m}`}
-                      title={`Reload ${m}`}
-                      className="rounded p-0.5 text-muted-foreground/50 transition hover:text-foreground"
-                    >
-                      <RotateCw className="size-3.5" />
-                    </button>
-                  ) : null}
-                </div>
-                {host && (
-                  <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground" title={host}>
-                    {host}
-                  </div>
-                )}
+              <div className="border-b px-4 py-3">
+                <Heading m={m} />
               </div>
               {sameAsCom ? (
-                <div className="col-span-6 flex items-center px-4 text-sm italic text-muted-foreground">
-                  same as .com
-                </div>
+                <div className="px-4 py-4 text-sm italic text-muted-foreground">same as .com</div>
               ) : (
-                CONCERNS.map((c) => {
-                  const cell = byKey.get(`${m}|${c.key}`);
-                  return <Cell key={c.key} cell={cell} loading={load === "loading"} />;
-                })
+                <div className="divide-y">
+                  {CONCERNS.map((c) => (
+                    <div key={c.key} className="flex items-center justify-between gap-3 px-4 py-2.5">
+                      <span className="text-sm text-muted-foreground">{c.label}</span>
+                      <CellPill cell={byKey.get(`${m}|${c.key}`)} loading={load === "loading"} showNote />
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           );
