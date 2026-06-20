@@ -11,7 +11,7 @@ export const MARKETS: MarketDef[] = [
   { market: "US", base: "/us/find-a-workshop", coach: "/browse-ww-coaches", tld: null },
   { market: "UK", base: "/uk/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.co.uk" },
   { market: "CA/EN", base: "/ca/en/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.ca" },
-  { market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-les-coachs-ww", tld: "fr.weightwatchers.ca" },
+  { market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.ca" },
   { market: "AU", base: "/au/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.com.au" },
   { market: "NZ", base: "/nz/find-a-workshop", coach: "/browse-ww-coaches", tld: null },
   { market: "DE", base: "/de/workshop-finden", coach: "/coaches", tld: "weightwatchers.de" },
