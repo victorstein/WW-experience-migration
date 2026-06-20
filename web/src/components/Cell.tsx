@@ -21,8 +21,12 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
     );
   }
   const v = verdict(cell.backend);
+  // `server` is intentionally omitted: Cloudflare rewrites it to "cloudflare" at
+  // the edge for every cell, so it's misleading here. x-vercel-id (+ via/served-by)
+  // are the discriminators that actually survive the edge. (We still persist
+  // `server` — the classifier uses `Server: nginx` when run from inside the
+  // corporate network, where the origin header isn't masked.)
   const fingerprints: [string, string][] = [
-    ["server", cell.server || "—"],
     ["x-vercel-id", cell.vercel_id || "— (absent)"],
   ];
   if (cell.via) fingerprints.push(["via", cell.via]);
