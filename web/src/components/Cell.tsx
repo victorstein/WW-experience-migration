@@ -58,7 +58,7 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
               {fingerprints.map(([k, val]) => (
                 <Fragment key={k}>
                   <dt className="opacity-50">{k}</dt>
-                  <dd className="break-all opacity-80">{val}</dd>
+                  <dd className="break-words opacity-80">{val}</dd>
                 </Fragment>
               ))}
             </dl>
