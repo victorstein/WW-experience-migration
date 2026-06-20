@@ -9,6 +9,14 @@ describe("classify", () => {
   it("vercel: 200 with x-vercel-id", () => {
     const r = classify(200, H({ server: "Vercel", "x-vercel-id": "iad1::abc" }), NOCHAIN);
     expect(r.backend).toBe("vercel");
+    expect(r.vercel_id).toBe("iad1::abc"); // discriminator captured for debugging
+  });
+
+  it("other: 200 behind cloudflare with no x-vercel-id => records absence", () => {
+    const r = classify(200, H({ server: "cloudflare", via: "1.1 vegur" }), NOCHAIN);
+    expect(r.backend).toBe("other");
+    expect(r.vercel_id).toBeNull(); // the very reason it's `other`
+    expect(r.via).toBe("1.1 vegur");
   });
 
   it("nginx: 200 with server nginx", () => {
