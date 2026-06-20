@@ -61,7 +61,11 @@ export function classify(
     return make("redirect", chain[chain.length - 1]?.location ?? null);
   }
 
-  // 4) 404 / everything else.
-  if (finalStatus === 404) return make("404");
+  // 4) 404. A 404 carrying Vercel evidence (x-vercel-id, corroborated by
+  // x-matched-path: /404) is Vercel's "oops" page — the route is on the migrated
+  // app but unfound/ungated. A 404 without it is the legacy Drupal origin, i.e.
+  // the path hasn't been forwarded to Vercel yet. `via: varnish` is on both
+  // (Fastly fronts everything), so x-vercel-id is the only reliable splitter.
+  if (finalStatus === 404) return make(isVercel ? "vercel-404" : "404");
   return make("other");
 }
