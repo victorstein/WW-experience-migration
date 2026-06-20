@@ -1,5 +1,16 @@
 import { describe, it, expect } from "vitest";
-import { allCells, buildUrl, partitionSlices, SLICE_MAX } from "../shared/matrix";
+import { allCells, buildUrl, partitionSlices, SLICE_MAX, marketSlugs } from "../shared/matrix";
+
+describe("marketSlugs", () => {
+  it("returns the localized workshop-finder slug per market", () => {
+    const s = marketSlugs();
+    expect(s["US"]).toBe("/find-a-workshop");
+    expect(s["DE"]).toBe("/workshop-finden");
+    expect(s["CA/FR"]).toBe("/trouvez-un-atelier");
+    expect(s["SE"]).toBe("/hitta-workshop");
+    expect(Object.keys(s).length).toBe(11);
+  });
+});
 
 describe("matrix", () => {
   it("produces exactly 200 cells (US/NZ canonical skipped)", () => {

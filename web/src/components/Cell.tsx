@@ -12,9 +12,13 @@ export function Cell({
   loading?: boolean;
   onClick: () => void;
 }) {
+  // Short, vertically-centered divider on the left of every concern cell — the
+  // subtle column separators from the WW session list.
+  const WRAP =
+    "relative flex items-center justify-center px-2 py-5 before:absolute before:left-0 before:top-1/2 before:h-8 before:w-px before:-translate-y-1/2 before:bg-border";
   if (!cell) {
     return (
-      <div className="flex items-center justify-center px-2 py-4">
+      <div className={WRAP}>
         {loading ? (
           <div className="h-6 w-20 animate-pulse rounded-full bg-muted" />
         ) : (
@@ -25,7 +29,7 @@ export function Cell({
   }
   const v = verdict(cell.backend);
   return (
-    <div className="flex items-center justify-center px-2 py-3">
+    <div className={WRAP}>
       <Tooltip>
         <TooltipTrigger asChild>
           <button

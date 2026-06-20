@@ -62,6 +62,15 @@ export function buildUrl(cell: Cell): string {
   return host(cell.env, cell.host_variant, d) + d.base + concernSuffix(cell.concern, d.coach);
 }
 
+// Per-market workshop-finder slug (the localized last path segment), e.g.
+// US -> "/find-a-workshop", DE -> "/workshop-finden", CA/FR -> "/trouvez-un-atelier".
+// Surfaced via /api/status so the dashboard can label each market row.
+export function marketSlugs(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const d of MARKETS) out[d.market] = "/" + d.base.split("/").filter(Boolean).pop()!;
+  return out;
+}
+
 export function allCells(): Cell[] {
   const cells: Cell[] = [];
   for (const d of MARKETS) {

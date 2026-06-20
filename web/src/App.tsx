@@ -16,6 +16,7 @@ export default function App() {
   const [cells, setCells] = useState<CurrentCell[]>([]);
   const [sliceCount, setSliceCount] = useState(20);
   const [slicePlan, setSlicePlan] = useState<string[][]>([]);
+  const [marketSlugs, setMarketSlugs] = useState<Record<string, string>>({});
   const [variant, setVariant] = useState<VariantKey>("qa/com");
   const [selected, setSelected] = useState<CurrentCell | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -26,6 +27,7 @@ export default function App() {
     setCells(r.cells);
     setSliceCount(r.sliceCount);
     setSlicePlan(r.slicePlan ?? []);
+    setMarketSlugs(r.marketSlugs ?? {});
   }
   useEffect(() => { load(); }, []);
 
@@ -78,7 +80,7 @@ export default function App() {
             </TabsList>
           </Tabs>
           <div className="mt-6">
-            <Grid cells={filtered} marketLoad={marketLoad} onSelect={setSelected} />
+            <Grid cells={filtered} marketLoad={marketLoad} marketSlugs={marketSlugs} onSelect={setSelected} />
           </div>
           <p className="mt-6 text-xs text-muted-foreground">
             NL, CH/DE, CH/FR are Core-only (no workshops) — not tracked.

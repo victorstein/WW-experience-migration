@@ -4,6 +4,7 @@ export async function fetchStatus(): Promise<{
   cells: CurrentCell[];
   sliceCount: number;
   slicePlan: string[][];
+  marketSlugs: Record<string, string>;
 }> {
   const r = await fetch("/api/status");
   if (!r.ok) throw new Error(`status ${r.status}`);
