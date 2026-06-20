@@ -2,12 +2,12 @@ import type { Backend } from "./types";
 
 // Pill classes: a translucent tint + inset ring + tinted text, tuned to read on
 // both the light and dark (WW navy) themes. No logos — color + text only.
-export function verdict(b: Backend): { label: string; className: string } {
+export function verdict(b: Backend): { label: string; className: string; note?: string } {
   switch (b) {
     case "vercel":
       return { label: "Vercel", className: "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300" };
     case "nginx":
-      return { label: "nginx", className: "bg-amber-500/15 text-amber-700 ring-amber-500/30 dark:text-amber-300" };
+      return { label: "nginx", className: "bg-amber-500/15 text-amber-700 ring-amber-500/30 dark:text-amber-300", note: "old workshop finder" };
     case "redirect-exp":
       return { label: "→ experience", className: "bg-blue-500/15 text-blue-700 ring-blue-500/30 dark:text-blue-300" };
     case "404":
