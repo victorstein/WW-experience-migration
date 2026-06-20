@@ -10,6 +10,11 @@ describe("verdict", () => {
     expect(verdict("error").label).toBe("error");
     expect(verdict("vercel").className).toContain("bg-");
   });
+
+  it("annotates nginx as the old workshop finder; others have no note", () => {
+    expect(verdict("nginx").note).toBe("old workshop finder");
+    expect(verdict("vercel").note).toBeUndefined();
+  });
 });
 
 describe("changeSummary", () => {

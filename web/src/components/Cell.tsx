@@ -72,6 +72,11 @@ export function Cell({ cell, loading = false }: { cell?: CurrentCell; loading?: 
           </div>
         </TooltipContent>
       </Tooltip>
+      {v.note && (
+        <span className="pointer-events-none absolute left-1/2 top-1/2 mt-3.5 -translate-x-1/2 whitespace-nowrap text-[10px] leading-none text-muted-foreground/70">
+          {v.note}
+        </span>
+      )}
     </div>
   );
 }
