@@ -26,6 +26,13 @@ describe("api", () => {
     expect(res.headers.get("content-type")).toContain("application/json");
   });
 
+  it("GET /api/history 400s on missing params, 200s with all four", async () => {
+    const bad = await SELF.fetch("https://board/api/history?env=qa");
+    expect(bad.status).toBe(400);
+    const ok = await SELF.fetch("https://board/api/history?env=qa&host_variant=com&market=US&concern=main");
+    expect(ok.status).toBe(200);
+  });
+
   it("POST /api/sweep claims once, then 429s within the cooldown with a countdown", async () => {
     const first = await SELF.fetch("https://board/api/sweep", { method: "POST" });
     expect(first.status).toBe(200);

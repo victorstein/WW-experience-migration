@@ -29,11 +29,20 @@ app.get("/api/status", async (c) => {
 });
 
 app.get("/api/history", async (c) => {
+  // All four identify a single cell. Missing ones used to bind `undefined` into
+  // the D1 query and 500; require them up front and 400 instead.
+  const env = c.req.query("env");
+  const host_variant = c.req.query("host_variant");
+  const market = c.req.query("market");
+  const concern = c.req.query("concern");
+  if (!env || !host_variant || !market || !concern) {
+    return c.json({ error: "env, host_variant, market, concern are required" }, 400);
+  }
   const cell: Cell = {
-    env: c.req.query("env") as Env,
-    host_variant: c.req.query("host_variant") as HostVariant,
-    market: c.req.query("market") ?? "",
-    concern: c.req.query("concern") as Concern,
+    env: env as Env,
+    host_variant: host_variant as HostVariant,
+    market,
+    concern: concern as Concern,
   };
   const limit = Math.min(parseInt(c.req.query("limit") ?? "100", 10) || 100, 500);
   const history = await getHistory(c.env.DB, cell, limit);
