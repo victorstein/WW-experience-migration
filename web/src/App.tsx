@@ -71,10 +71,10 @@ export default function App() {
         <main className="mx-auto max-w-6xl px-6 py-8 md:px-10">
           <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantKey)}>
             <TabsList className="rounded-full">
-              <TabsTrigger value="qa/com" className="rounded-full">QA · .com</TabsTrigger>
-              <TabsTrigger value="qa/canonical" className="rounded-full">QA · canonical</TabsTrigger>
-              <TabsTrigger value="prod/com" className="rounded-full">Prod · .com</TabsTrigger>
-              <TabsTrigger value="prod/canonical" className="rounded-full">Prod · canonical</TabsTrigger>
+              <TabsTrigger value="qa/com" className="rounded-full px-5">QA · .com</TabsTrigger>
+              <TabsTrigger value="qa/canonical" className="rounded-full px-5">QA · canonical</TabsTrigger>
+              <TabsTrigger value="prod/com" className="rounded-full px-5">Prod · .com</TabsTrigger>
+              <TabsTrigger value="prod/canonical" className="rounded-full px-5">Prod · canonical</TabsTrigger>
             </TabsList>
           </Tabs>
           <div className="mt-6">
