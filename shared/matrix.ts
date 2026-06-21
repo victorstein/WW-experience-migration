@@ -5,19 +5,20 @@ interface MarketDef {
   base: string; // locale + workshop slug, e.g. "/uk/find-a-workshop"
   coach: string; // coach-list suffix
   tld: string | null; // canonical domain w/o "www."; null => no separate TLD (US, NZ)
+  eventWord?: string; // event-detail path segment; defaults to "virtual" (French markets use "virtuel")
 }
 
 export const MARKETS: MarketDef[] = [
   { market: "US", base: "/us/find-a-workshop", coach: "/browse-ww-coaches", tld: null },
   { market: "UK", base: "/uk/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.co.uk" },
   { market: "CA/EN", base: "/ca/en/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.ca" },
-  { market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.ca" },
+  { market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.ca", eventWord: "virtuel" },
   { market: "AU", base: "/au/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.com.au" },
   { market: "NZ", base: "/nz/find-a-workshop", coach: "/browse-ww-coaches", tld: null },
   { market: "DE", base: "/de/workshop-finden", coach: "/coaches", tld: "weightwatchers.de" },
   { market: "FR", base: "/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "weightwatchers.fr" },
   { market: "BE/FR", base: "/be/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.be" },
-  { market: "BE/NL", base: "/be/nl/vind-een-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.be" },
+  { market: "BE/NL", base: "/be/nl/vind-een-workshop", coach: "/bekijk-ww-coaches", tld: "weightwatchers.be" },
   { market: "SE", base: "/se/hitta-workshop", coach: "/browse-ww-coaches", tld: "viktvaktarna.se" },
 ];
 
@@ -33,7 +34,7 @@ export const VARIANTS: { env: Env; host_variant: HostVariant }[] = [
 export const SLICE_MAX = 10;
 
 const COACH_ID = "/Alyce-G/1018090";
-const VIRTUAL_ID = "/virtual/25550661";
+const EVENT_ID = "25550661";
 const LOCATION_ID = "/2003261/ww-studio--the-st-james-building-chelsea-new-york-new-york";
 
 function def(market: string): MarketDef {
@@ -53,13 +54,13 @@ function locale(d: MarketDef): string {
   return d.base.slice(0, d.base.lastIndexOf("/"));
 }
 
-function concernSuffix(concern: Concern, coach: string): string {
+function concernSuffix(concern: Concern, d: MarketDef): string {
   switch (concern) {
     case "gateway": return ""; // gateway is not finder-relative; see buildUrl
     case "main": return "";
-    case "coachlist": return coach;
-    case "coachdet": return coach + COACH_ID;
-    case "eventdet": return VIRTUAL_ID;
+    case "coachlist": return d.coach;
+    case "coachdet": return d.coach + COACH_ID;
+    case "eventdet": return `/${d.eventWord ?? "virtual"}/${EVENT_ID}`;
     case "locdet": return LOCATION_ID;
   }
 }
@@ -79,7 +80,7 @@ export function buildUrl(cell: Cell): string {
   // Gateway is the top-level workshops landing page (today /<locale>/experiences,
   // migrating to /<locale>/workshops) — NOT under the finder base.
   if (cell.concern === "gateway") return h + locale(d) + "/workshops";
-  return h + d.base + concernSuffix(cell.concern, d.coach);
+  return h + d.base + concernSuffix(cell.concern, d);
 }
 
 export function allCells(): Cell[] {
