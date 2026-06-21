@@ -86,11 +86,18 @@ export function Grid({
 
   return (
     <div>
-      {/* ===== Tablet + desktop: the matrix table, horizontally scrollable ===== */}
-      <div className="hidden overflow-x-auto md:block">
+      {/* ===== Tablet + desktop: the matrix table, horizontally scrollable =====
+          overflow-x-auto traps a sticky header (it becomes a vertical scroll
+          context), so at lg+ — where the 820px grid always fits and no horizontal
+          scroll is needed — drop the overflow so the sticky header row can pin to
+          the page as you scroll down. Below lg (tablet) horizontal scroll wins and
+          the header just doesn't stick there. */}
+      <div className="hidden overflow-x-auto md:block lg:overflow-visible">
         <div className="min-w-[820px]">
-          {/* Header row — bold real-word labels with an underline rule (WW style). */}
-          <div className={cn(COLS, "border-b px-4 pb-3 text-sm font-bold")}>
+          {/* Header row — bold real-word labels with an underline rule (WW style).
+              Sticky just below the page banner (~64px) so the column labels stay
+              visible while scrolling the market rows vertically. */}
+          <div className={cn(COLS, "sticky top-16 z-10 border-b bg-background px-4 pb-3 pt-3 text-sm font-bold")}>
             <div>Market</div>
             {CONCERNS.map((c) => (
               <div key={c.key} className="text-center">
