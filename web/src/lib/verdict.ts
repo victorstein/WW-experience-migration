@@ -6,6 +6,10 @@ export function verdict(b: Backend): { label: string; className: string; note?: 
   switch (b) {
     case "vercel":
       return { label: "Vercel", className: "bg-emerald-500/15 text-emerald-700 ring-emerald-500/30 dark:text-emerald-300" };
+    case "vercel-wrong":
+      // Still on Vercel (keep the "Vercel" pill) but not the workshop page, so amber
+      // not green — the caption says which.
+      return { label: "Vercel", className: "bg-amber-500/15 text-amber-700 ring-amber-500/30 dark:text-amber-300", note: "not a workshop page" };
     case "nginx":
       return { label: "nginx", className: "bg-amber-500/15 text-amber-700 ring-amber-500/30 dark:text-amber-300", note: "old workshop finder" };
     case "redirect-exp":

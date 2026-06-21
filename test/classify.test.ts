@@ -75,6 +75,26 @@ describe("classify", () => {
     expect(r.redirect_to).toBe("/au/plans");
   });
 
+  it("vercel-wrong: a vercel 200 whose matched route lacks the expected workshop token (e.g. /au/plans)", () => {
+    const r = classify(200, H({ "x-vercel-id": "iad1::z", "x-matched-path": "/au/plans" }), NOCHAIN, "workshops");
+    expect(r.backend).toBe("vercel-wrong");
+  });
+
+  it("vercel: a vercel 200 whose matched route contains the expected token is the real page", () => {
+    const r = classify(200, H({ "x-vercel-id": "iad1::z", "x-matched-path": "/us/find-a-workshop" }), NOCHAIN, "find-a-workshop");
+    expect(r.backend).toBe("vercel");
+  });
+
+  it("vercel: no expectedToken (probe path) never downgrades to wrong-page", () => {
+    const r = classify(200, H({ "x-vercel-id": "iad1::z", "x-matched-path": "/au/plans" }), NOCHAIN);
+    expect(r.backend).toBe("vercel");
+  });
+
+  it("vercel: absent x-matched-path with a token given stays vercel (no penalizing on missing data)", () => {
+    const r = classify(200, H({ "x-vercel-id": "iad1::z" }), NOCHAIN, "find-a-workshop");
+    expect(r.backend).toBe("vercel");
+  });
+
   it("vercel-404: a 404 carrying x-vercel-id is Vercel's oops page (route on Vercel, just not found)", () => {
     const r = classify(404, H({ "x-vercel-id": "fra1::84ngg", "x-matched-path": "/404", via: "1.1 varnish" }), NOCHAIN);
     expect(r.backend).toBe("vercel-404");

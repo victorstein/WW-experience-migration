@@ -1,5 +1,5 @@
 import type { Cell, CheckRow } from "../shared/types";
-import { allCells, buildUrl, partitionSlices } from "../shared/matrix";
+import { allCells, buildUrl, partitionSlices, workshopRouteToken } from "../shared/matrix";
 import { classify } from "../shared/classify";
 import { probe } from "./fetcher";
 import { appendAndUpsert, type AppEnv } from "./db";
@@ -40,7 +40,7 @@ export async function runSlice(
 async function checkCell(cell: Cell, now: number): Promise<CheckRow> {
   const url = buildUrl(cell);
   const { chain, finalStatus, finalHeaders } = await probe(url);
-  const o = classify(finalStatus, finalHeaders, chain);
+  const o = classify(finalStatus, finalHeaders, chain, workshopRouteToken(cell.concern));
   return {
     ...cell, url, ts: now,
     http_status: o.finalStatus, backend: o.backend,

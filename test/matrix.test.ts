@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { allCells, buildUrl, partitionSlices, SLICE_MAX } from "../shared/matrix";
+import { allCells, buildUrl, partitionSlices, SLICE_MAX, workshopRouteToken } from "../shared/matrix";
 
 describe("matrix", () => {
   it("produces exactly 240 cells (6 concerns; US/NZ canonical skipped)", () => {
@@ -30,6 +30,13 @@ describe("matrix", () => {
   it("builds prod .com coachlist URL for DE", () => {
     const url = buildUrl({ env: "prod", host_variant: "com", market: "DE", concern: "coachlist" });
     expect(url).toBe("https://www.weightwatchers.com/de/workshop-finden/coaches");
+  });
+
+  it("maps each concern to the expected Vercel route token", () => {
+    expect(workshopRouteToken("gateway")).toBe("workshops");
+    expect(workshopRouteToken("main")).toBe("find-a-workshop");
+    expect(workshopRouteToken("coachlist")).toBe("find-a-workshop");
+    expect(workshopRouteToken("locdet")).toBe("find-a-workshop");
   });
 
   it("builds CA/FR coach-list URL with the /parcourir-ww-coachs slug", () => {
