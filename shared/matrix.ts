@@ -64,6 +64,15 @@ function concernSuffix(concern: Concern, coach: string): string {
   }
 }
 
+// The token Vercel's canonicalized `x-matched-path` must contain for a 200 to be
+// the genuine workshop page for this concern. Vercel normalizes every localized
+// finder slug (workshop-finden, hitta-workshop, trouver-un-atelier, …) to
+// "find-a-workshop", and the gateway to "workshops"; a 200 matching neither (e.g.
+// /au/plans, /be-nl) is a wrong-page render, not a completed migration.
+export function workshopRouteToken(concern: Concern): string {
+  return concern === "gateway" ? "workshops" : "find-a-workshop";
+}
+
 export function buildUrl(cell: Cell): string {
   const d = def(cell.market);
   const h = host(cell.env, cell.host_variant, d);

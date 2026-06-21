@@ -11,7 +11,11 @@ function lower(headers: Record<string, string>): Record<string, string> {
 export function classify(
   finalStatus: number,
   finalHeaders: Record<string, string>,
-  chain: Hop[]
+  chain: Hop[],
+  // When given (the matrix passes the concern's expected route token), a Vercel 200
+  // whose x-matched-path doesn't contain it is the wrong page, not a real render.
+  // Omitted by /api/probe, which has no concern context.
+  expectedToken?: string
 ): CheckOutcome {
   const h = lower(finalHeaders);
   const server = h["server"] ?? null;
@@ -57,7 +61,17 @@ export function classify(
   // 2) Final 200.
   if (finalStatus >= 200 && finalStatus < 300) {
     if (isVercel && matched_path && EXP_SLUGS.test(matched_path)) return make("redirect-exp");
-    if (isVercel) return make("vercel");
+    if (isVercel) {
+      // Migration-complete means the workshop page actually rendered, not just that
+      // Vercel answered 200. Vercel's matched route is canonicalized, so a 200 whose
+      // x-matched-path lacks the concern's expected token is a wrong page (e.g. a
+      // funnel to /au/plans or a homepage fallback). Missing matched_path => no
+      // evidence to downgrade, stay vercel.
+      if (expectedToken && matched_path && !matched_path.includes(expectedToken)) {
+        return make("vercel-wrong");
+      }
+      return make("vercel");
+    }
     if (looksLegacy) return make("nginx");
     return make("other");
   }

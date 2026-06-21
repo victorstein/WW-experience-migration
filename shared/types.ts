@@ -4,7 +4,7 @@ export type Concern = "gateway" | "main" | "coachlist" | "coachdet" | "eventdet"
 // "404" is the legacy/Drupal origin 404 (path not forwarded to Vercel yet);
 // "vercel-404" is Vercel's own oops page (route on Vercel, just not found).
 export type Backend =
-  | "vercel" | "nginx" | "redirect-exp" | "redirect"
+  | "vercel" | "vercel-wrong" | "nginx" | "redirect-exp" | "redirect"
   | "vercel-404" | "404" | "other" | "error";
 
 export interface Cell {
