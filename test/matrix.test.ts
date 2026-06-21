@@ -44,9 +44,21 @@ describe("matrix", () => {
     expect(url).toBe("https://www.qat2.weightwatchers.com/ca/fr/trouver-un-atelier/parcourir-ww-coachs");
   });
 
-  it("builds CA/FR canonical event URL on fr.weightwatchers.ca", () => {
+  it("builds CA/FR canonical event URL with the French 'virtuel' segment", () => {
     const url = buildUrl({ env: "qa", host_variant: "canonical", market: "CA/FR", concern: "eventdet" });
-    expect(url).toBe("https://www.qat2.fr.weightwatchers.ca/ca/fr/trouver-un-atelier/virtual/25550661");
+    expect(url).toBe("https://www.qat2.fr.weightwatchers.ca/ca/fr/trouver-un-atelier/virtuel/25550661");
+  });
+
+  it("keeps the default 'virtual' event segment for non-French markets", () => {
+    const url = buildUrl({ env: "qa", host_variant: "com", market: "US", concern: "eventdet" });
+    expect(url).toBe("https://www.qat2.weightwatchers.com/us/find-a-workshop/virtual/25550661");
+  });
+
+  it("builds BE/NL coach URL with the Dutch coach slug on the workshop (target) base", () => {
+    // vind-een-workshop is the migration TARGET (we track it as not-migrated until
+    // it goes live); vind-een-ervaring is the old finder we're moving away from.
+    const url = buildUrl({ env: "qa", host_variant: "com", market: "BE/NL", concern: "coachlist" });
+    expect(url).toBe("https://www.qat2.weightwatchers.com/be/nl/vind-een-workshop/bekijk-ww-coaches");
   });
 
   it("partitions into balanced, market-aligned slices of at most SLICE_MAX", () => {
