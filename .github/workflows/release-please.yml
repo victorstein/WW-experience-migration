@@ -10,6 +10,16 @@ permissions:
   pull-requests: write
   actions: write
 
+# Serialize runs so the open→auto-merge→re-fire cycle can't race itself.
+# Without this, concurrent runs (e.g. several pushes to main in quick
+# succession, or the re-fire overlapping the run that spawned it) collide on
+# the PR merge — GitHub rejects the loser with "Base branch was modified".
+# cancel-in-progress: false so a queued re-fire waits for, not cancels, the
+# run that produced the merge commit it needs to tag.
+concurrency:
+  group: release-please
+  cancel-in-progress: false
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
