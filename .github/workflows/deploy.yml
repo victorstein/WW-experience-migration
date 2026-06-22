@@ -12,6 +12,15 @@ name: deploy
 on:
   push:
     branches: [main]
+    # Skip deploy when a push only touches the stein-infra-managed release-please
+    # files — those commits (and release-please's own version bumps) carry no app
+    # change, so re-deploying + re-running D1 migrations would be wasted churn.
+    paths-ignore:
+      - ".github/workflows/release-please.yml"
+      - "release-please-config.json"
+      - ".release-please-manifest.json"
+      - "version.txt"
+      - "CHANGELOG.md"
   workflow_dispatch:
 
 concurrency:
