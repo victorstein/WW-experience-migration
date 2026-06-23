@@ -9,7 +9,7 @@
   },
   "scripts": {
     "test": "vitest run",
-    "test:web": "cd web && vitest run",
+    "test:web": "cd web && npm test",
     "dev:api": "wrangler dev",
     "dev:web": "cd web && npm run dev",
     "build:web": "cd web && npm run build",
