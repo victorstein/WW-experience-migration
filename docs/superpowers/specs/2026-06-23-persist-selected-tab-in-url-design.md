@@ -15,8 +15,9 @@ Reflect the selected variant tab in the URL so it survives a refresh and is shar
 
 - The selected tab is encoded as a query param: `?tab=<key>`, where `<key>` is one of the four variant keys (e.g. `?tab=prod/canonical`).
 - On load, the app reads `?tab=` and selects that tab. A missing or unrecognized value falls back to the current default, `qa/com`.
+- On first load, the app does **not** write the default into a bare URL — a fresh visit with no `?tab=` stays clean. The URL is written only on a user-initiated tab change.
 - Switching tabs rewrites the URL in place via `history.replaceState` — no new history entries, so the browser Back button leaves the page rather than cycling through tabs.
-- The slash in the key is preserved unencoded for a clean URL (e.g. `?tab=prod/com`, not `?tab=prod%2Fcom`). The app has no other query params.
+- The write uses plain string interpolation — `history.replaceState(null, "", \`?tab=${key}\`)` — so the slash stays unencoded for a clean URL (e.g. `?tab=prod/com`, not `?tab=prod%2Fcom`). This relative form intentionally preserves the path; the app uses no hash and no other query params. (Reading via `URLSearchParams.get` decodes `%2F` too, so a hand-encoded URL still resolves.)
 
 ## Structure
 
@@ -28,8 +29,8 @@ New focused module `web/src/lib/tabParam.ts`, matching the existing `lib/` patte
 
 `App.tsx` changes (minimal):
 
-- Initialize state lazily from the URL: `useState(() => parseTabParam(window.location.search))`.
-- In `onValueChange`, after `setVariant`, write `?tab=<key>` via `history.replaceState`.
+- Initialize state lazily from the URL: `useState(() => parseTabParam(window.location.search))`. This read-only init does not touch the URL, so a bare first visit stays clean.
+- In `onValueChange`, after `setVariant`, write the URL via `history.replaceState(null, "", \`?tab=${key}\`)` (string interpolation, not `URLSearchParams`).
 - Import `VariantKey` / `VARIANT_KEYS` from the new module instead of declaring them locally.
 
 ## Testing
