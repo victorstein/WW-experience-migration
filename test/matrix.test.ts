@@ -10,8 +10,17 @@ describe("matrix", () => {
     expect(buildUrl({ env: "prod", host_variant: "com", market: "US", concern: "gateway" })).toBe(
       "https://www.weightwatchers.com/us/workshops"
     );
+  });
+
+  it("uses the localized 'ateliers' gateway slug for French markets", () => {
     expect(buildUrl({ env: "qa", host_variant: "canonical", market: "CA/FR", concern: "gateway" })).toBe(
-      "https://www.qat2.fr.weightwatchers.ca/ca/fr/workshops"
+      "https://www.qat2.fr.weightwatchers.ca/ca/fr/ateliers"
+    );
+    expect(buildUrl({ env: "prod", host_variant: "canonical", market: "FR", concern: "gateway" })).toBe(
+      "https://www.weightwatchers.fr/fr/ateliers"
+    );
+    expect(buildUrl({ env: "qa", host_variant: "canonical", market: "BE/FR", concern: "gateway" })).toBe(
+      "https://www.qat2.fr.weightwatchers.be/be/fr/ateliers"
     );
   });
 
@@ -33,10 +42,19 @@ describe("matrix", () => {
   });
 
   it("maps each concern to the expected Vercel route token", () => {
-    expect(workshopRouteToken("gateway")).toBe("workshops");
-    expect(workshopRouteToken("main")).toBe("find-a-workshop");
-    expect(workshopRouteToken("coachlist")).toBe("find-a-workshop");
-    expect(workshopRouteToken("locdet")).toBe("find-a-workshop");
+    expect(workshopRouteToken("gateway", "US")).toBe("workshops");
+    expect(workshopRouteToken("main", "US")).toBe("find-a-workshop");
+    expect(workshopRouteToken("coachlist", "US")).toBe("find-a-workshop");
+    expect(workshopRouteToken("locdet", "US")).toBe("find-a-workshop");
+  });
+
+  it("uses a per-market gateway token: 'ateliers' for French markets, 'workshops' elsewhere", () => {
+    expect(workshopRouteToken("gateway", "FR")).toBe("ateliers");
+    expect(workshopRouteToken("gateway", "CA/FR")).toBe("ateliers");
+    expect(workshopRouteToken("gateway", "BE/FR")).toBe("ateliers");
+    expect(workshopRouteToken("gateway", "DE")).toBe("workshops");
+    // The localized gateway token only applies to the gateway concern.
+    expect(workshopRouteToken("main", "FR")).toBe("find-a-workshop");
   });
 
   it("builds CA/FR coach-list URL with the /parcourir-ww-coachs slug", () => {

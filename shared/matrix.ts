@@ -6,18 +6,19 @@ interface MarketDef {
   coach: string; // coach-list suffix
   tld: string | null; // canonical domain w/o "www."; null => no separate TLD (US, NZ)
   eventWord?: string; // event-detail path segment; defaults to "virtual" (French markets use "virtuel")
+  gateway?: string; // gateway landing slug; defaults to "workshops" (French markets use "ateliers")
 }
 
 export const MARKETS: MarketDef[] = [
   { market: "US", base: "/us/find-a-workshop", coach: "/browse-ww-coaches", tld: null },
   { market: "UK", base: "/uk/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.co.uk" },
   { market: "CA/EN", base: "/ca/en/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.ca" },
-  { market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.ca", eventWord: "virtuel" },
+  { market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.ca", eventWord: "virtuel", gateway: "ateliers" },
   { market: "AU", base: "/au/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.com.au" },
   { market: "NZ", base: "/nz/find-a-workshop", coach: "/browse-ww-coaches", tld: null },
   { market: "DE", base: "/de/workshop-finden", coach: "/coaches", tld: "weightwatchers.de" },
-  { market: "FR", base: "/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "weightwatchers.fr" },
-  { market: "BE/FR", base: "/be/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.be" },
+  { market: "FR", base: "/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "weightwatchers.fr", gateway: "ateliers" },
+  { market: "BE/FR", base: "/be/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.be", gateway: "ateliers" },
   { market: "BE/NL", base: "/be/nl/vind-een-workshop", coach: "/bekijk-ww-coaches", tld: "weightwatchers.be" },
   { market: "SE", base: "/se/hitta-workshop", coach: "/browse-ww-coaches", tld: "viktvaktarna.se" },
 ];
@@ -65,21 +66,26 @@ function concernSuffix(concern: Concern, d: MarketDef): string {
   }
 }
 
-// The token Vercel's canonicalized `x-matched-path` must contain for a 200 to be
-// the genuine workshop page for this concern. Vercel normalizes every localized
-// finder slug (workshop-finden, hitta-workshop, trouver-un-atelier, …) to
-// "find-a-workshop", and the gateway to "workshops"; a 200 matching neither (e.g.
-// /au/plans, /be-nl) is a wrong-page render, not a completed migration.
-export function workshopRouteToken(concern: Concern): string {
-  return concern === "gateway" ? "workshops" : "find-a-workshop";
+// The token Vercel's `x-matched-path` must contain for a 200 to be the genuine
+// workshop page for this concern. Vercel normalizes every localized finder slug
+// (workshop-finden, hitta-workshop, trouver-un-atelier, …) to "find-a-workshop",
+// so that token is market-independent. The gateway is NOT normalized — Vercel
+// reports its localized slug (workshops, or "ateliers" for French markets) — so
+// the gateway token is per-market, read from the same MarketDef.gateway the URL
+// is built from. A 200 matching neither (e.g. /au/plans, /be-nl) is a wrong-page
+// render, not a completed migration.
+export function workshopRouteToken(concern: Concern, market: string): string {
+  if (concern !== "gateway") return "find-a-workshop";
+  return def(market).gateway ?? "workshops";
 }
 
 export function buildUrl(cell: Cell): string {
   const d = def(cell.market);
   const h = host(cell.env, cell.host_variant, d);
   // Gateway is the top-level workshops landing page (today /<locale>/experiences,
-  // migrating to /<locale>/workshops) — NOT under the finder base.
-  if (cell.concern === "gateway") return h + locale(d) + "/workshops";
+  // migrating to /<locale>/workshops, or its localized slug — French markets use
+  // /<locale>/ateliers) — NOT under the finder base.
+  if (cell.concern === "gateway") return h + locale(d) + "/" + (d.gateway ?? "workshops");
   return h + d.base + concernSuffix(cell.concern, d);
 }
 
