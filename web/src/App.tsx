@@ -9,14 +9,13 @@ import { fetchStatus, refreshSlices, refreshSliceIndices, claimSweep } from "@/l
 import { marketSlices, marketStatus, type MarketLoad } from "@/lib/progress";
 import { sweepRemaining } from "@/lib/cooldown";
 import type { CurrentCell } from "@/lib/types";
-
-type VariantKey = "qa/com" | "qa/canonical" | "prod/com" | "prod/canonical";
+import { parseTabParam, type VariantKey } from "@/lib/tabParam";
 
 export default function App() {
   const [cells, setCells] = useState<CurrentCell[]>([]);
   const [sliceCount, setSliceCount] = useState(20);
   const [slicePlan, setSlicePlan] = useState<string[][]>([]);
-  const [variant, setVariant] = useState<VariantKey>("qa/com");
+  const [variant, setVariant] = useState<VariantKey>(() => parseTabParam(window.location.search));
   const [refreshing, setRefreshing] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 20 });
   const [reloading, setReloading] = useState<Set<string>>(new Set());
@@ -119,7 +118,14 @@ export default function App() {
       <div className="min-h-screen bg-background">
         <Header lastTs={lastTs} refreshing={refreshing} progress={progress} cooldownRemaining={cooldownRemaining} onRefresh={handleRefresh} />
         <main className="mx-auto max-w-6xl px-4 py-6 sm:px-6 md:px-10 md:py-8">
-          <Tabs value={variant} onValueChange={(v) => setVariant(v as VariantKey)}>
+          <Tabs
+            value={variant}
+            onValueChange={(v) => {
+              const key = v as VariantKey;
+              setVariant(key);
+              history.replaceState(null, "", `?tab=${key}`);
+            }}
+          >
             {/* Scroll the tabs sideways on phones — all four don't fit at <640px.
                 Hide the scrollbar itself; the row stays swipeable without the bar. */}
             <div className="-mx-1 overflow-x-auto px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
