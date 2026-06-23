@@ -40,7 +40,7 @@ export async function runSlice(
 async function checkCell(cell: Cell, now: number): Promise<CheckRow> {
   const url = buildUrl(cell);
   const { chain, finalStatus, finalHeaders } = await probe(url);
-  const o = classify(finalStatus, finalHeaders, chain, workshopRouteToken(cell.concern));
+  const o = classify(finalStatus, finalHeaders, chain, workshopRouteToken(cell.concern, cell.market));
   return {
     ...cell, url, ts: now,
     http_status: o.finalStatus, backend: o.backend,
