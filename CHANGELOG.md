@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/victorstein/WW-experience-migration/compare/v1.1.0...v1.2.0) (2026-06-23)
+
+
+### Features
+
+* French markets use /ateliers gateway slug (CA/FR, BE/FR, FR) ([#25](https://github.com/victorstein/WW-experience-migration/issues/25)) ([75f2279](https://github.com/victorstein/WW-experience-migration/commit/75f227972591de60e0a8ba3497420851d2835d8b))
+
 ## [1.1.0](https://github.com/victorstein/WW-experience-migration/compare/v1.0.0...v1.1.0) (2026-06-22)
 
 
