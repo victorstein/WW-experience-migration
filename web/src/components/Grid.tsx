@@ -4,7 +4,11 @@ import { cn } from "@/lib/utils";
 import type { CurrentCell } from "@/lib/types";
 import type { MarketLoad } from "@/lib/progress";
 
-const MARKETS = ["US", "UK", "CA/EN", "CA/FR", "AU", "NZ", "DE", "FR", "BE/FR", "BE/NL", "SE"];
+const MARKETS = [
+  "US", "UK", "CA/EN", "CA/FR", "CA/FR (EN Slug)", "AU", "NZ",
+  "DE", "DE (EN Slug)", "FR", "FR (EN Slug)", "BE/FR", "BE/FR (EN Slug)",
+  "BE/NL", "BE/NL (EN Slug)", "SE", "SE (EN Slug)",
+];
 // Markets with no separate canonical TLD — their canonical IS .com, so the
 // canonical tabs have nothing distinct to show for them.
 const NO_CANONICAL = new Set(["US", "NZ"]);
