@@ -91,7 +91,7 @@ export function Grid({
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="max-w-xs">
-                English-slug variant — the same market and locale checked with the English URL slugs (find-a-workshop, workshops, browse-ww-coaches, virtual) instead of the localized ones.
+                English-slug variant — the same market and locale checked with the English URL slugs (find-a-workshop, browse-ww-coaches, virtual) instead of the localized ones. The gateway has no English equivalent, so it shows “—”.
               </TooltipContent>
             </Tooltip>
           )}

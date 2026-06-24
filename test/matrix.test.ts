@@ -2,8 +2,8 @@ import { describe, it, expect } from "vitest";
 import { allCells, buildUrl, partitionSlices, SLICE_MAX, workshopRouteToken } from "../shared/matrix";
 
 describe("matrix", () => {
-  it("produces exactly 384 cells (6 concerns; US/NZ canonical skipped; +6 EN-slug twins)", () => {
-    expect(allCells().length).toBe(384);
+  it("produces exactly 360 cells (US/NZ canonical skipped; +6 EN-slug twins, gateway-less)", () => {
+    expect(allCells().length).toBe(360);
   });
 
   it("builds the gateway URL at /<locale>/workshops (not under the finder base)", () => {
@@ -82,7 +82,7 @@ describe("matrix", () => {
   it("partitions into balanced, market-aligned slices of at most SLICE_MAX", () => {
     const slices = partitionSlices(allCells());
     expect(slices.every((s) => s.length <= SLICE_MAX)).toBe(true);
-    expect(slices.flat().length).toBe(384);
+    expect(slices.flat().length).toBe(360);
     // No slice straddles two markets.
     expect(slices.every((s) => new Set(s.map((c) => c.market)).size === 1)).toBe(true);
     // Balanced within a market: 12-cell markets (US/NZ) split 6+6, not 10+2.
@@ -91,22 +91,23 @@ describe("matrix", () => {
   });
 
   it("checks the English-slug twin under the localized locale (FR)", () => {
-    const en = (concern: "main" | "gateway" | "coachlist" | "eventdet") =>
+    const en = (concern: "main" | "coachlist" | "eventdet") =>
       buildUrl({ env: "prod", host_variant: "canonical", market: "FR (EN Slug)", concern });
     expect(en("main")).toBe("https://www.weightwatchers.fr/fr/find-a-workshop");
-    expect(en("gateway")).toBe("https://www.weightwatchers.fr/fr/workshops");
     expect(en("coachlist")).toBe("https://www.weightwatchers.fr/fr/find-a-workshop/browse-ww-coaches");
     expect(en("eventdet")).toBe("https://www.weightwatchers.fr/fr/find-a-workshop/virtual/25550661");
   });
 
-  it("derives the two-segment locale for a twin gateway (CA/FR)", () => {
-    expect(buildUrl({ env: "prod", host_variant: "canonical", market: "CA/FR (EN Slug)", concern: "gateway" })).toBe(
-      "https://www.fr.weightwatchers.ca/ca/fr/workshops"
+  it("derives the two-segment locale for a twin (CA/FR)", () => {
+    expect(buildUrl({ env: "prod", host_variant: "canonical", market: "CA/FR (EN Slug)", concern: "main" })).toBe(
+      "https://www.fr.weightwatchers.ca/ca/fr/find-a-workshop"
     );
   });
 
-  it("uses the default 'workshops' gateway token for an English-slug twin", () => {
-    expect(workshopRouteToken("gateway", "FR (EN Slug)")).toBe("workshops");
+  it("does not check the gateway for English-slug twins (no English gateway page)", () => {
+    const twins = ["CA/FR (EN Slug)", "DE (EN Slug)", "FR (EN Slug)", "BE/FR (EN Slug)", "BE/NL (EN Slug)", "SE (EN Slug)"];
+    const gatewayTwinCells = allCells().filter((c) => c.concern === "gateway" && twins.includes(c.market));
+    expect(gatewayTwinCells).toEqual([]);
   });
 
   it("includes the six English-slug twin markets in allCells", () => {

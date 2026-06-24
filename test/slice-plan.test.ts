@@ -2,10 +2,10 @@ import { describe, it, expect } from "vitest";
 import { slicePlan, sliceCount } from "../worker/checker";
 
 describe("slicePlan", () => {
-  it("has one entry per slice (49: market-aligned balanced slices)", () => {
+  it("has one entry per slice (43: market-aligned balanced slices)", () => {
     const plan = slicePlan();
     expect(plan.length).toBe(sliceCount());
-    expect(plan.length).toBe(49);
+    expect(plan.length).toBe(43);
   });
 
   it("every slice belongs to exactly one market; union is all 17 markets", () => {

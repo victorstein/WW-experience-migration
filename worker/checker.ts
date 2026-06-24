@@ -10,9 +10,10 @@ export function sliceCount(): number {
 
 // Which market(s) each slice covers — index = slice number. Computed once at
 // module load; surfaced via /api/status to drive the per-country loading UI.
-// Each slice currently maps to exactly one market (markets are 12- or 24-cell,
-// split into balanced slices of 6 or 8), but we return the distinct markets per
-// slice so the client stays correct if a future market breaks that clean alignment.
+// Each slice currently maps to exactly one market (markets are 12-, 20-, or
+// 24-cell, split into balanced slices of at most SLICE_MAX), but we return the
+// distinct markets per slice so the client stays correct if a future market
+// breaks that clean alignment.
 const SLICE_PLAN: string[][] = partitionSlices(allCells()).map((slice) => [
   ...new Set(slice.map((c) => c.market)),
 ]);
