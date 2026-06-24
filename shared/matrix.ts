@@ -14,13 +14,19 @@ export const MARKETS: MarketDef[] = [
   { market: "UK", base: "/uk/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.co.uk" },
   { market: "CA/EN", base: "/ca/en/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.ca" },
   { market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.ca", eventWord: "virtuel", gateway: "ateliers" },
+  { market: "CA/FR (EN Slug)", base: "/ca/fr/find-a-workshop", coach: "/browse-ww-coaches", tld: "fr.weightwatchers.ca" },
   { market: "AU", base: "/au/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.com.au" },
   { market: "NZ", base: "/nz/find-a-workshop", coach: "/browse-ww-coaches", tld: null },
   { market: "DE", base: "/de/workshop-finden", coach: "/coaches", tld: "weightwatchers.de" },
+  { market: "DE (EN Slug)", base: "/de/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.de" },
   { market: "FR", base: "/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "weightwatchers.fr", gateway: "ateliers" },
+  { market: "FR (EN Slug)", base: "/fr/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.fr" },
   { market: "BE/FR", base: "/be/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.be", gateway: "ateliers" },
+  { market: "BE/FR (EN Slug)", base: "/be/fr/find-a-workshop", coach: "/browse-ww-coaches", tld: "fr.weightwatchers.be" },
   { market: "BE/NL", base: "/be/nl/vind-een-workshop", coach: "/bekijk-ww-coaches", tld: "weightwatchers.be" },
+  { market: "BE/NL (EN Slug)", base: "/be/nl/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.be" },
   { market: "SE", base: "/se/hitta-workshop", coach: "/browse-ww-coaches", tld: "viktvaktarna.se" },
+  { market: "SE (EN Slug)", base: "/se/find-a-workshop", coach: "/browse-ww-coaches", tld: "viktvaktarna.se" },
 ];
 
 export const CONCERNS: Concern[] = ["gateway", "main", "coachlist", "coachdet", "eventdet", "locdet"];
