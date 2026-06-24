@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/victorstein/WW-experience-migration/compare/v1.3.0...v1.4.0) (2026-06-24)
+
+
+### Features
+
+* English-slug variant rows for localized markets ([#30](https://github.com/victorstein/WW-experience-migration/issues/30)) ([1e49d0b](https://github.com/victorstein/WW-experience-migration/commit/1e49d0b2c65cc6cb2338ffa644d46315e1573295))
+
 ## [1.3.0](https://github.com/victorstein/WW-experience-migration/compare/v1.2.0...v1.3.0) (2026-06-23)
 
 

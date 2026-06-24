@@ -1,6 +1,6 @@
 {
   "name": "workshops-status-board",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "private": true,
   "description": "Dashboard + cron checker tracking QA/prod redirect &amp; backend health across markets during the WW experience migration",
   "main": "index.js",
