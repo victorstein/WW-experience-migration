@@ -6,7 +6,7 @@ interface MarketDef {
   coach: string; // coach-list suffix
   tld: string | null; // canonical domain w/o "www."; null => no separate TLD (US, NZ)
   eventWord?: string; // event-detail path segment; defaults to "virtual" (French markets use "virtuel")
-  gateway?: string; // gateway landing slug; defaults to "workshops" (French markets use "ateliers")
+  gateway?: string | null; // gateway landing slug; defaults to "workshops" (French markets use "ateliers"); null = no gateway page to check (EN-slug twins — the gateway has no English equivalent)
 }
 
 export const MARKETS: MarketDef[] = [
@@ -14,13 +14,19 @@ export const MARKETS: MarketDef[] = [
   { market: "UK", base: "/uk/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.co.uk" },
   { market: "CA/EN", base: "/ca/en/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.ca" },
   { market: "CA/FR", base: "/ca/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.ca", eventWord: "virtuel", gateway: "ateliers" },
+  { market: "CA/FR (EN Slug)", base: "/ca/fr/find-a-workshop", coach: "/browse-ww-coaches", tld: "fr.weightwatchers.ca", gateway: null },
   { market: "AU", base: "/au/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.com.au" },
   { market: "NZ", base: "/nz/find-a-workshop", coach: "/browse-ww-coaches", tld: null },
   { market: "DE", base: "/de/workshop-finden", coach: "/coaches", tld: "weightwatchers.de" },
+  { market: "DE (EN Slug)", base: "/de/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.de", gateway: null },
   { market: "FR", base: "/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "weightwatchers.fr", gateway: "ateliers" },
+  { market: "FR (EN Slug)", base: "/fr/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.fr", gateway: null },
   { market: "BE/FR", base: "/be/fr/trouver-un-atelier", coach: "/parcourir-ww-coachs", tld: "fr.weightwatchers.be", gateway: "ateliers" },
+  { market: "BE/FR (EN Slug)", base: "/be/fr/find-a-workshop", coach: "/browse-ww-coaches", tld: "fr.weightwatchers.be", gateway: null },
   { market: "BE/NL", base: "/be/nl/vind-een-workshop", coach: "/bekijk-ww-coaches", tld: "weightwatchers.be" },
+  { market: "BE/NL (EN Slug)", base: "/be/nl/find-a-workshop", coach: "/browse-ww-coaches", tld: "weightwatchers.be", gateway: null },
   { market: "SE", base: "/se/hitta-workshop", coach: "/browse-ww-coaches", tld: "viktvaktarna.se" },
+  { market: "SE (EN Slug)", base: "/se/find-a-workshop", coach: "/browse-ww-coaches", tld: "viktvaktarna.se", gateway: null },
 ];
 
 export const CONCERNS: Concern[] = ["gateway", "main", "coachlist", "coachdet", "eventdet", "locdet"];
@@ -95,6 +101,7 @@ export function allCells(): Cell[] {
     for (const v of VARIANTS) {
       if (v.host_variant === "canonical" && d.tld === null) continue; // US/NZ have no canonical TLD
       for (const concern of CONCERNS) {
+        if (concern === "gateway" && d.gateway === null) continue; // EN-slug twins have no gateway page
         cells.push({ env: v.env, host_variant: v.host_variant, market: d.market, concern });
       }
     }

@@ -2,17 +2,21 @@ import { describe, it, expect } from "vitest";
 import { slicePlan, sliceCount } from "../worker/checker";
 
 describe("slicePlan", () => {
-  it("has one entry per slice (31: market-aligned balanced slices)", () => {
+  it("has one entry per slice (43: market-aligned balanced slices)", () => {
     const plan = slicePlan();
     expect(plan.length).toBe(sliceCount());
-    expect(plan.length).toBe(31);
+    expect(plan.length).toBe(43);
   });
 
-  it("every slice belongs to exactly one market; union is all 11 markets", () => {
+  it("every slice belongs to exactly one market; union is all 17 markets", () => {
     const plan = slicePlan();
     expect(plan.every((m) => m.length === 1)).toBe(true);
     expect(new Set(plan.flat())).toEqual(
-      new Set(["US", "UK", "CA/EN", "CA/FR", "AU", "NZ", "DE", "FR", "BE/FR", "BE/NL", "SE"])
+      new Set([
+        "US", "UK", "CA/EN", "CA/FR", "CA/FR (EN Slug)", "AU", "NZ",
+        "DE", "DE (EN Slug)", "FR", "FR (EN Slug)", "BE/FR", "BE/FR (EN Slug)",
+        "BE/NL", "BE/NL (EN Slug)", "SE", "SE (EN Slug)",
+      ])
     );
   });
 

@@ -1,10 +1,15 @@
-import { Loader2, RotateCw } from "lucide-react";
+import { Info, Loader2, RotateCw } from "lucide-react";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { Cell, CellPill } from "./Cell";
 import { cn } from "@/lib/utils";
 import type { CurrentCell } from "@/lib/types";
 import type { MarketLoad } from "@/lib/progress";
 
-const MARKETS = ["US", "UK", "CA/EN", "CA/FR", "AU", "NZ", "DE", "FR", "BE/FR", "BE/NL", "SE"];
+const MARKETS = [
+  "US", "UK", "CA/EN", "CA/FR", "CA/FR (EN Slug)", "AU", "NZ",
+  "DE", "DE (EN Slug)", "FR", "FR (EN Slug)", "BE/FR", "BE/FR (EN Slug)",
+  "BE/NL", "BE/NL (EN Slug)", "SE", "SE (EN Slug)",
+];
 // Markets with no separate canonical TLD — their canonical IS .com, so the
 // canonical tabs have nothing distinct to show for them.
 const NO_CANONICAL = new Set(["US", "NZ"]);
@@ -74,6 +79,22 @@ export function Grid({
               <RotateCw className="size-3.5" />
             </button>
           ) : null}
+          {m.endsWith("(EN Slug)") && (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  aria-label="What is the EN Slug variant?"
+                  className="rounded p-0.5 text-muted-foreground/50 transition hover:text-foreground"
+                >
+                  <Info className="size-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="top" className="max-w-xs">
+                English-slug variant — the same market and locale checked with the English URL slugs (find-a-workshop, browse-ww-coaches, virtual) instead of the localized ones. The gateway has no English equivalent, so it shows “—”.
+              </TooltipContent>
+            </Tooltip>
+          )}
         </div>
         {host && (
           <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground" title={host}>
