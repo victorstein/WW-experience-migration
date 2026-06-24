@@ -79,7 +79,11 @@ Consequences, all from existing per-market derivation (no new code paths):
 - `NO_CANONICAL` is unchanged (twins all have a canonical TLD).
 - **Info tooltip:** in the shared `Heading` component, when a market label is an
   English twin (ends with `(EN Slug)`), render a small `Info` icon (lucide) next
-  to the name wrapped in the existing `Tooltip`. Tooltip copy:
+  to the name inside a Tooltip. `Grid.tsx` does **not** currently import any
+  Tooltip primitives, so add `Tooltip`, `TooltipTrigger`, and `TooltipContent`
+  from `@/components/ui/tooltip` and follow the existing radix pattern used in
+  `Cell.tsx` (`<Tooltip><TooltipTrigger asChild>…</TooltipTrigger><TooltipContent>…</TooltipContent></Tooltip>`).
+  Tooltip copy:
   > English-slug variant — the same market and locale checked with the English
   > URL slugs (find-a-workshop, workshops, browse-ww-coaches, virtual) instead of
   > the localized ones.
@@ -91,7 +95,13 @@ Consequences, all from existing per-market derivation (no new code paths):
 ## Cell count
 
 6 twins × 4 variants × 6 concerns = **144 new cells → 384 total** (from 240).
-Sweep covers more cells and takes proportionally longer; this is expected.
+Slices grow **31 → 49** (each twin is 24 cells → 3 balanced slices of 8).
+
+The manual "Refresh all" sweep covers more cells and takes proportionally longer.
+The cron checks one slice per tick (`*/3 * * * *`), so the time to revisit any
+given cell grows with the slice count (≈ 31×3 → 49×3 min, ~1.5h → ~2.5h per
+cell). Acceptable for this board; the cursor is `% sliceCount`, so it
+self-adjusts with no code change.
 
 ## Testing
 
@@ -99,6 +109,8 @@ Sweep covers more cells and takes proportionally longer; this is expected.
 
 - Update the two `240` assertions (the `allCells().length` count and the
   `partitionSlices(...).flat().length`) to `384`.
+- The `US (12 cells) → 2 slices` / `UK (24 cells) → 3` balance assertions still
+  hold (parents unchanged), so they stay as-is.
 - New cases for a twin (FR is representative), asserting fully English URLs under
   the localized locale:
   - `main` → `https://www.weightwatchers.fr/fr/find-a-workshop`
@@ -109,6 +121,13 @@ Sweep covers more cells and takes proportionally longer; this is expected.
 - `allCells()` includes the twin markets (e.g. a cell with `market === "FR (EN Slug)"`).
 - Slice-balance invariants still hold (≤ `SLICE_MAX`, no slice straddles two
   markets) with the larger set.
+
+`test/slice-plan.test.ts`:
+
+- Update the slice-count assertion `31` → `49`.
+- Add the 6 twin keys to the expected market-union set (11 → 17 markets) and
+  update the test descriptions ("all 11 markets" → 17).
+- The `US → 2`, `UK → 3`, `plan[0] === ["US"]` assertions are unaffected.
 
 Tooltip rendering is verified manually (hover a twin row's info icon; confirm the
 copy; confirm non-twin rows show no icon).
