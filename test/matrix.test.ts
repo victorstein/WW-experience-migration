@@ -99,6 +99,12 @@ describe("matrix", () => {
     expect(en("eventdet")).toBe("https://www.weightwatchers.fr/fr/find-a-workshop/virtual/25550661");
   });
 
+  it("derives the two-segment locale for a twin gateway (CA/FR)", () => {
+    expect(buildUrl({ env: "prod", host_variant: "canonical", market: "CA/FR (EN Slug)", concern: "gateway" })).toBe(
+      "https://www.fr.weightwatchers.ca/ca/fr/workshops"
+    );
+  });
+
   it("uses the default 'workshops' gateway token for an English-slug twin", () => {
     expect(workshopRouteToken("gateway", "FR (EN Slug)")).toBe("workshops");
   });
